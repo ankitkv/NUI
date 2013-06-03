@@ -36,12 +36,12 @@ public:
 	void readyForNextData(nui::NUIPoints* pNUIPoints)
 	{
 		openni::VideoFrameRef frame;
-		cv::Point3f nuiPoint;
-		openni::Status rc = pNUIPoints->getNextData(nuiPoint, frame);
+		std::deque<cv::Point3f> nuiPoints;
+		openni::Status rc = pNUIPoints->getNextData(nuiPoints, frame);
 
 		if (rc == openni::STATUS_OK)
 		{
-			printf("%f, %f, %f\n", nuiPoint.x, nuiPoint.y, nuiPoint.z);
+//			printf("%f, %f, %f\n", nuiPoint.x, nuiPoint.y, nuiPoint.z);
 		}
 		else
 		{
@@ -55,49 +55,12 @@ class NUIApp {
 	NUIListener *myListener;
 	bool mIsAnaglyph;
 
-	void toggle()
-	{
-		mIsAnaglyph = !mIsAnaglyph;
-		if (mIsAnaglyph)
-			printf("Enabling...\n");
-		else
-			printf("Disabling...\n");
-	   
-	   	if (nuiPoints) {
-			nuiPoints->resetListener();
-			if (myListener) {
-				delete myListener;
-				myListener = NULL;
-			}
-			delete nuiPoints;
-			nuiPoints = NULL;
-		}
-
-		if (mIsAnaglyph) {
-			nuiPoints = new nui::NUIPoints();
-			if (!nuiPoints->isValid()) {
-				delete nuiPoints;
-				nuiPoints = NULL;
-			} else {
-				myListener = new NUIListener;
-				nuiPoints->setListener(*myListener);
-			}
-		}
-	}
-
 public:
 	NUIApp() : nuiPoints(NULL), myListener(NULL), mIsAnaglyph(false)
 	{}
 
 	void run()
 	{
-		while (true)
-		{
-			if (wasKeyboardHit())
-				toggle();
-
-			Sleep(1000);
-		}
 	}
 };
 
