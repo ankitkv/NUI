@@ -144,7 +144,6 @@ void NUIViewer::display()
 
 	memset(m_pTexMap, 0, m_nTexMapX*m_nTexMapY*sizeof(openni::RGB888Pixel));
 
-	float factor[3] = {1, 1, 1};
 	// check if we need to draw depth frame to texture
 	if (depthFrame.isValid())
 	{
@@ -162,14 +161,7 @@ void NUIViewer::display()
 			for (int x = 0; x < width; ++x, ++pDepth, ++pTex)
 			{
 				if (*pDepth != 0)
-				{
-					int nHistValue = m_pDepthHist[*pDepth];
-					pTex->r = nHistValue*factor[0];
-					pTex->g = nHistValue*factor[1];
-					pTex->b = nHistValue*factor[2];
-
-					factor[0] = factor[1] = factor[2] = 1;
-				}
+					pTex->r = pTex->g = pTex->b = m_pDepthHist[*pDepth];
 			}
 
 			pDepthRow += rowSize;

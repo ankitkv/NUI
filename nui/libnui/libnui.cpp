@@ -192,6 +192,8 @@ Status NUIPoints::getNextData(std::deque<cv::Point3f>& nuiPoints, VideoFrameRef&
 		printf("readFrame failed\n%s\n", OpenNI::getExtendedError());
 	}
 
+	nuiPoints.clear();
+
 	DepthPixel* pDepth = (DepthPixel*)rawFrame.getData();
 	bool found = false;
 	cv::Point3f nuiPoint;
