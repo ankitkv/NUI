@@ -184,7 +184,7 @@ void NUIPoints::resetListener()
 	m_pInternal->m_pListener = NULL;
 }
 
-Status NUIPoints::getNextData(cv::Point3f& nuiPoint, VideoFrameRef& rawFrame)
+Status NUIPoints::getNextData(std::deque<cv::Point3f>& nuiPoints, VideoFrameRef& rawFrame)
 {
 	Status rc = m_pInternal->m_pDepthStream->readFrame(&rawFrame);
 	if (rc != STATUS_OK)
@@ -194,11 +194,11 @@ Status NUIPoints::getNextData(cv::Point3f& nuiPoint, VideoFrameRef& rawFrame)
 
 	DepthPixel* pDepth = (DepthPixel*)rawFrame.getData();
 	bool found = false;
-	nuiPoint.z = 0xffff;
+	cv::Point3f nuiPoint;
 	int width = rawFrame.getWidth();
 	int height = rawFrame.getHeight();
 
-	for (int x = 0; x < width; ++x) {
+	for (int x = 0; x < width / 8.0; ++x) {
 		for (int y = 0; y < height - (height / 4.5); ++y)
 		{
 			if (pDepth[y * width + x] < FAR_LIMIT && pDepth[y * width + x] != 0)
@@ -217,14 +217,12 @@ Status NUIPoints::getNextData(cv::Point3f& nuiPoint, VideoFrameRef& rawFrame)
 					}
 				}
 				if (found)
-					break;
+					nuiPoints.push_back(nuiPoint);
 			}
 		}
-		if (found)
-			break;
 	}
 
-	if (!found)
+	if (nuiPoints.empty())
 	{
 		return STATUS_ERROR;
 	}

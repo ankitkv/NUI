@@ -117,7 +117,7 @@ void NUIViewer::display()
 	}
 
 	openni::VideoFrameRef depthFrame = m_pNUIPointsListener->getFrame();
-	const cv::Point3f& nuiPoint = m_pNUIPointsListener->getNUIPoints();
+	const std::deque<cv::Point3f>& nuiPoints = m_pNUIPointsListener->getNUIPoints();
 	m_pNUIPointsListener->setUnavailable();
 
 	if (m_pTexMap == NULL)
@@ -163,16 +163,6 @@ void NUIViewer::display()
 			{
 				if (*pDepth != 0)
 				{
-					if (*pDepth == nuiPoint.z)
-					{
-						factor[0] = factor[1] = 0;
-					}
-//					// Add debug lines - every 10cm
-// 					else if ((*pDepth / 10) % 10 == 0)
-// 					{
-// 						factor[0] = factor[2] = 0;
-// 					}
-
 					int nHistValue = m_pDepthHist[*pDepth];
 					pTex->r = nHistValue*factor[0];
 					pTex->g = nHistValue*factor[1];
@@ -217,21 +207,23 @@ void NUIViewer::display()
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 
-	float x = nuiPoint.x;
-	float y = nuiPoint.y;
+	for (std::deque<cv::Point3f>::const_iterator i = nuiPoints.begin(); i != nuiPoints.end(); ++i) {
+		float x = i->x;
+		float y = i->y;
 
-	float nuiPointCoordinates[3] = {x*GL_WIN_SIZE_X/float(depthFrame.getWidth()), y*GL_WIN_SIZE_Y/float(depthFrame.getHeight()), 0};
+		float nuiPointCoordinates[3] = {x*GL_WIN_SIZE_X/float(depthFrame.getWidth()), y*GL_WIN_SIZE_Y/float(depthFrame.getHeight()), 0};
 
-	glVertexPointer(3, GL_FLOAT, 0, nuiPointCoordinates);
-	glColor3f(1.f, 0.f, 0.f);
-	glPointSize(7);
-	glDrawArrays(GL_POINTS, 0, 1);
-	glFlush();
+		glVertexPointer(3, GL_FLOAT, 0, nuiPointCoordinates);
+		glColor3f(1.f, 0.f, 0.f);
+		glPointSize(7);
+		glDrawArrays(GL_POINTS, 0, 1);
+		glFlush();
+	}
 
 	// Swap the OpenGL display buffers
 	glutSwapBuffers();
 
-	doMouseMove(nuiPoint);
+	//doMouseMove(nuiPoint); TODO: remove
 }
 
 void NUIViewer::doMouseMove(const cv::Point3f& nuiPoint)
@@ -275,16 +267,16 @@ void NUIViewer::onKey(unsigned char key, int /*x*/, int /*y*/)
 	switch (key)
 	{
 	case 'q':
-		m_pNUIPoints->getCalibrationMgr()->calibrate(m_pNUIPointsListener->getNUIPoints(), 0, 0);
+//		m_pNUIPoints->getCalibrationMgr()->calibrate(m_pNUIPointsListener->getNUIPoints(), 0, 0); TODO: fix calibration
 		break;
 	case 'w':
-		m_pNUIPoints->getCalibrationMgr()->calibrate(m_pNUIPointsListener->getNUIPoints(), 0, 1);
+//		m_pNUIPoints->getCalibrationMgr()->calibrate(m_pNUIPointsListener->getNUIPoints(), 0, 1);
 		break;
 	case 'a':
-		m_pNUIPoints->getCalibrationMgr()->calibrate(m_pNUIPointsListener->getNUIPoints(), 1, 0);
+//		m_pNUIPoints->getCalibrationMgr()->calibrate(m_pNUIPointsListener->getNUIPoints(), 1, 0);
 		break;
 	case 's':
-		m_pNUIPoints->getCalibrationMgr()->calibrate(m_pNUIPointsListener->getNUIPoints(), 1, 1);
+//		m_pNUIPoints->getCalibrationMgr()->calibrate(m_pNUIPointsListener->getNUIPoints(), 1, 1);
 		break;
 	case 'd':
 		if (m_pNUIPoints->getCalibrationMgr()->isCalibrated())

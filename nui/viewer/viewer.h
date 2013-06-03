@@ -38,7 +38,7 @@ public:
 	virtual ~NUIListener() {}
 	void readyForNextData(nui::NUIPoints* pNUIPoints)
 	{
-		int rc = pNUIPoints->getNextData(m_nuiPoint, m_frame);
+		int rc = pNUIPoints->getNextData(m_nuiPoints, m_frame);
 
 		if (rc == openni::STATUS_OK)
 		{
@@ -52,12 +52,12 @@ public:
 	}
 
 	const openni::VideoFrameRef& getFrame() {return m_frame;}
-	const cv::Point3f& getNUIPoints() {return m_nuiPoint;}
+	const std::deque<cv::Point3f>& getNUIPoints() {return m_nuiPoints;}
 	bool isAvailable() const {return m_ready;}
 	void setUnavailable() {m_ready = false;}
 private:
 	openni::VideoFrameRef m_frame;
-	cv::Point3f m_nuiPoint;
+	std::deque<cv::Point3f> m_nuiPoints;
 	bool m_ready;
 };
 

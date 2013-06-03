@@ -11,3 +11,5 @@
 *.lai
 *.la
 *.a
+anaglyph/build/
+anaglyph/.AUTHORS.sed
