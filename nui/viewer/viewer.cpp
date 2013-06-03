@@ -117,7 +117,7 @@ void NUIViewer::display()
 	}
 
 	openni::VideoFrameRef depthFrame = m_pNUIPointsListener->getFrame();
-	const std::deque<cv::Point3f>& nuiPoints = m_pNUIPointsListener->getNUIPoints();
+	const std::list<cv::Point3f>& nuiPoints = m_pNUIPointsListener->getNUIPoints();
 	m_pNUIPointsListener->setUnavailable();
 
 	if (m_pTexMap == NULL)
@@ -199,7 +199,7 @@ void NUIViewer::display()
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 
-	for (std::deque<cv::Point3f>::const_iterator i = nuiPoints.begin(); i != nuiPoints.end(); ++i) {
+	for (std::list<cv::Point3f>::const_iterator i = nuiPoints.begin(); i != nuiPoints.end(); ++i) {
 		float x = i->x;
 		float y = i->y;
 
@@ -238,7 +238,7 @@ void NUIViewer::doMouseMove(const cv::Point3f& nuiPoint)
 		m_samplePoints.pop_front();
 
 	x = y = 0.0;
-	std::deque<cv::Point2f>::iterator itr = m_samplePoints.begin();
+	std::list<cv::Point2f>::iterator itr = m_samplePoints.begin();
 	int samples;
 	for (samples = 0; samples < SAMPLES; ++samples) {
 		if (itr == m_samplePoints.end())

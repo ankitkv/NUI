@@ -25,7 +25,7 @@
 
 #include "calibration.h"
 
-#include <deque>
+#include <list>
 
 #define FAR_LIMIT 1000
 #define SCREEN_AREA 35
@@ -55,7 +55,7 @@ public:
 	openni::Status setListener(Listener& listener);
 	void resetListener();
 
-	openni::Status getNextData(std::deque<cv::Point3f>& nuiPoints, openni::VideoFrameRef& rawFrame);
+	openni::Status getNextData(std::list<cv::Point3f>& nuiPoints, openni::VideoFrameRef& rawFrame);
 	openni::VideoStream* getStream();
 
 	CalibrationMgr *getCalibrationMgr() { return m_pCalibrationMgr; }

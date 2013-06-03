@@ -26,7 +26,7 @@
 #include "libnui.h"
 
 #include <X11/Xlib.h>
-#include <deque>
+#include <list>
 
 #define MAX_DEPTH 10000
 #define SAMPLES 6
@@ -52,12 +52,12 @@ public:
 	}
 
 	const openni::VideoFrameRef& getFrame() {return m_frame;}
-	const std::deque<cv::Point3f>& getNUIPoints() {return m_nuiPoints;}
+	const std::list<cv::Point3f>& getNUIPoints() {return m_nuiPoints;}
 	bool isAvailable() const {return m_ready;}
 	void setUnavailable() {m_ready = false;}
 private:
 	openni::VideoFrameRef m_frame;
-	std::deque<cv::Point3f> m_nuiPoints;
+	std::list<cv::Point3f> m_nuiPoints;
 	bool m_ready;
 };
 
@@ -104,7 +104,7 @@ private:
 
 	nui::NUIPoints* m_pNUIPoints;
 	NUIListener* m_pNUIPointsListener;
-	std::deque<cv::Point2f> m_samplePoints;
+	std::list<cv::Point2f> m_samplePoints;
 };
 
 

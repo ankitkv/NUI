@@ -184,7 +184,7 @@ void NUIPoints::resetListener()
 	m_pInternal->m_pListener = NULL;
 }
 
-Status NUIPoints::getNextData(std::deque<cv::Point3f>& nuiPoints, VideoFrameRef& rawFrame)
+Status NUIPoints::getNextData(std::list<cv::Point3f>& nuiPoints, VideoFrameRef& rawFrame)
 {
 	Status rc = m_pInternal->m_pDepthStream->readFrame(&rawFrame);
 	if (rc != STATUS_OK)
