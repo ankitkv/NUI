@@ -1,5 +1,5 @@
 3D Natural User Interface for Operating Systems
-===============================================
+-----------------------------------------------
 
 The purpose of this project is to make the operating system shell take advantage of the advent of stereoscopic 3D displays in market. Windows and window controls are projected in 3D space and the user can interact with them by touching the perceived positions of the windows in space, not the screen.
 
