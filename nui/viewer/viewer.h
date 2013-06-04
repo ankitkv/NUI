@@ -71,7 +71,7 @@ public:
 	virtual int init(int argc, char **argv);
 	virtual int run();	//Does not return
 
-	void doMouseMove(const cv::Point3f& nuiPoint);
+	void doPointAction(const cv::Point3f& nuiPoint);
 
 protected:
 	virtual void display();
@@ -99,12 +99,8 @@ private:
 	unsigned int			m_nTexMapX;
 	unsigned int			m_nTexMapY;
 
-	Display *m_xDisplay;
-	Window m_xScreenRoot;
-
 	nui::NUIPoints* m_pNUIPoints;
 	NUIListener* m_pNUIPointsListener;
-	std::list<cv::Point2f> m_samplePoints;
 };
 
 

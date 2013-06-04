@@ -97,9 +97,6 @@ int NUIViewer::init(int argc, char **argv)
 	m_pNUIPointsListener = new NUIListener;
 	m_pNUIPoints->setListener(*m_pNUIPointsListener);
 
-	m_xDisplay = XOpenDisplay(NULL);
-	m_xScreenRoot = RootWindow(m_xDisplay, 0);
-
 	return initOpenGL(argc, argv);
 
 }
@@ -199,9 +196,9 @@ void NUIViewer::display()
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 
-	for (std::list<cv::Point3f>::const_iterator i = nuiPoints.begin(); i != nuiPoints.end(); ++i) {
-		float x = i->x;
-		float y = i->y;
+	for (std::list<cv::Point3f>::const_iterator i = nuiPoints.begin(); i != nuiPoints.end(); ++i) { // TODO: invalid read of size 8
+		float x = i->x; // TODO: invalid read of size 4
+		float y = i->y; // TODO: invalid read of size 4
 
 		float nuiPointCoordinates[3] = {x*GL_WIN_SIZE_X/float(depthFrame.getWidth()), y*GL_WIN_SIZE_Y/float(depthFrame.getHeight()), 0};
 
@@ -218,7 +215,7 @@ void NUIViewer::display()
 	//doMouseMove(nuiPoint); TODO: remove
 }
 
-void NUIViewer::doMouseMove(const cv::Point3f& nuiPoint)
+void NUIViewer::doPointAction(const cv::Point3f& nuiPoint)
 {
 	if (!m_pNUIPoints->getCalibrationMgr()->isCalibrated())
 		return;
@@ -230,28 +227,6 @@ void NUIViewer::doMouseMove(const cv::Point3f& nuiPoint)
 	if (point.y >= SCREEN_HEIGHT) point.y = SCREEN_HEIGHT - 1.0;
 	if (point.z < 0.0) point.z = 0.0;
 	printf("point: (%f, %f)\tAbove screen: %f\n", point.x, point.y, point.z);
-
-	float x = point.x, y = point.y;
-	m_samplePoints.push_back(cv::Point2f(x, y));
-
-	if (m_samplePoints.size() > SAMPLES)
-		m_samplePoints.pop_front();
-
-	x = y = 0.0;
-	std::list<cv::Point2f>::iterator itr = m_samplePoints.begin();
-	int samples;
-	for (samples = 0; samples < SAMPLES; ++samples) {
-		if (itr == m_samplePoints.end())
-			break;
-		x += itr->x;
-		y += itr->y;
-		++itr;
-	}
-	x /= samples;
-	y /= samples;
-
-	XWarpPointer(m_xDisplay, None, m_xScreenRoot, 0, 0, 0, 0, x, y);
-	XFlush(m_xDisplay);
 }
 
 void NUIViewer::onKey(unsigned char key, int /*x*/, int /*y*/)

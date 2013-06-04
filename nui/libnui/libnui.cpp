@@ -200,26 +200,20 @@ Status NUIPoints::getNextData(std::list<cv::Point3f>& nuiPoints, VideoFrameRef& 
 	int width = rawFrame.getWidth();
 	int height = rawFrame.getHeight();
 
-	for (int x = 0; x < width / 8.0; ++x) {
-		for (int y = 0; y < height - (height / 4.5); ++y)
+	for (int x = 1; x < width - 1; ++x) {
+		for (int y = 1; y < height - (height / 4.5); ++y)
 		{
-			if (pDepth[y * width + x] < FAR_LIMIT && pDepth[y * width + x] != 0)
+			if (pDepth[y * width + x] < FAR_LIMIT
+				&& pDepth[y * width + x] != 0
+				&& (pDepth[y * width + x] - pDepth[(y + 1) * width + (x + 1)] > DEPTH_TRESHOLD
+				|| pDepth[y * width + x] - pDepth[(y - 1) * width + (x + 1)] > DEPTH_TRESHOLD
+				|| pDepth[y * width + x] - pDepth[(y + 1) * width + (x - 1)] > DEPTH_TRESHOLD
+				|| pDepth[y * width + x] - pDepth[(y - 1) * width + (x - 1)] > DEPTH_TRESHOLD))
 			{
 				nuiPoint.x = x;
 				nuiPoint.y = y;
 				nuiPoint.z = pDepth[y * width + x];
-
-				found = true;
-				if (x < SCREEN_AREA) {
-					for (int i = x; i < x + SCREEN_AREA; ++i) {
-						if (pDepth[y * width + i] == 0 || pDepth[y * width + i] >= FAR_LIMIT) {
-							found = false;
-							break;
-						}
-					}
-				}
-				if (found)
-					nuiPoints.push_back(nuiPoint);
+				nuiPoints.push_back(nuiPoint);
 			}
 		}
 	}
