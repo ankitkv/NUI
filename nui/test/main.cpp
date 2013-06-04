@@ -36,7 +36,7 @@ public:
 	void readyForNextData(nui::NUIPoints* pNUIPoints)
 	{
 		openni::VideoFrameRef frame;
-		std::deque<cv::Point3f> nuiPoints;
+		std::list<cv::Point3f> nuiPoints;
 		openni::Status rc = pNUIPoints->getNextData(nuiPoints, frame);
 
 		if (rc == openni::STATUS_OK)
