@@ -22,6 +22,8 @@
 
 #include "anaglyph.h"
 
+#include <list>
+
 COMPIZ_PLUGIN_20090315(anaglyph, AnaglyphPluginVTable);
 
 void
@@ -301,7 +303,7 @@ AnaglyphWindow::~AnaglyphWindow ()
 void AnaglyphScreen::createNUIPoints(AnaglyphScreen *screen)
 {
 	if (!nuiPoints) {
-		nuiPoints = new nui_points::NUIPoints();
+		nuiPoints = new nui::NUIPoints();
 		if (!nuiPoints->isValid()) {
 			delete nuiPoints;
 			nuiPoints = NULL;
@@ -326,54 +328,17 @@ void AnaglyphScreen::destroyNUIPoints()
 }
 
 AnaglyphScreen::NUIListener::NUIListener(AnaglyphScreen *s) : screen(s)
-{
-	dpy = XOpenDisplay(NULL);
-	screen_root = RootWindow(dpy, 0);
-}
+{ }
 
-/*void AnaglyphScreen::NUIListener::mousemove(int x, int y)
-{
-	XWarpPointer(dpy, None, screen_root, 0, 0, 0, 0, x, y);
-	XFlush(dpy);
-}*/
-
-
-void AnaglyphScreen::NUIListener::readyForNextData(nui_points::NUIPoints* pNUIPoints)
+void AnaglyphScreen::NUIListener::readyForNextData(nui::NUIPoints* pNUIPoints)
 {
 	int x, y, z;
 	openni::VideoFrameRef frame;
-	nui_points::IntPoint3D closest;
-	int rc = pNUIPoints->getNextData(closest, frame);
+	std::list<cv::Point3f> nuiPoints;
+	int rc = pNUIPoints->getNextData(nuiPoints, frame);
 
 	if (rc == openni::STATUS_OK)
 	{
-		x = closest.X;
-		y = closest.Y;
-		z = closest.Z;
-			
-		y -= 90;
-		y *= 1080 / (180 - 90);
-			
-		x = (740 - z) * 6;
-			
-		xpoints.push_back((float)x);
-		ypoints.push_back((float)y);
-			
-		if (xpoints.size() > SAMPLES) {
-			xpoints.pop_front();
-			ypoints.pop_front();
-		}
-			
-		x = y = 0;
-		std::deque<float>::iterator itr = xpoints.begin(), jtr = ypoints.begin();
-		for (int i = 0; i < SAMPLES; ++i) {
-			x += *(itr++);
-			y += *(jtr++);
-		}
-		x /= SAMPLES;
-		y /= SAMPLES;
-			
-		//mousemove(x, y);
 	}
 	else
 	{

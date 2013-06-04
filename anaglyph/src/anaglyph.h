@@ -25,11 +25,8 @@
 #include <core/core.h>
 #include <composite/composite.h>
 #include <opengl/opengl.h>
-#include <deque>
 
 #include "anaglyph_options.h"
-
-#define SAMPLES 6
 
 class AnaglyphScreen :
     public PluginClassHandler <AnaglyphScreen, CompScreen>,
@@ -42,19 +39,14 @@ class AnaglyphScreen :
 
     public:
 	
-	class NUIListener : public nui_points::NUIPoints::Listener
+	class NUIListener : public nui::NUIPoints::Listener
 	{
-		std::deque<float> xpoints, ypoints;
-		Display *dpy;
-		Window screen_root;
 		AnaglyphScreen *screen;
-
-		//void mousemove(int x, int y);
 
 	public:
 		NUIListener(AnaglyphScreen *);
 		virtual ~NUIListener() {}
-		void readyForNextData(nui_points::NUIPoints *);
+		void readyForNextData(nui::NUIPoints *);
 	} *myListener;
 
 	AnaglyphScreen (CompScreen *);
@@ -65,7 +57,7 @@ class AnaglyphScreen :
 	
 	bool		mIsAnaglyph;
 	bool		mIsDamage;
-	nui_points::NUIPoints *nuiPoints;
+	nui::NUIPoints *nuiPoints;
 
 	void toggle ();
 
