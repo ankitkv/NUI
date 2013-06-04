@@ -206,7 +206,7 @@ void NUIViewer::display()
 
 	glVertexPointer(3, GL_FLOAT, 0, nuiPointCoordinates);
 	glColor3f(1.f, 0.f, 0.f);
-	glPointSize(4.3);
+	glPointSize(4.5);
 	glDrawArrays(GL_POINTS, 0, index);
 	glFlush();
 
