@@ -32,6 +32,7 @@
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 #define DEPTH_TRESHOLD 200
+#define DEPTH_TRESHOLD_RANGE 1
 
 namespace nui
 {

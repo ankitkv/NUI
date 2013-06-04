@@ -196,23 +196,22 @@ void NUIViewer::display()
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 
-	for (std::list<cv::Point3f>::const_iterator i = nuiPoints.begin(); i != nuiPoints.end(); ++i) { // TODO: invalid read of size 8
-		float x = i->x; // TODO: invalid read of size 4
-		float y = i->y; // TODO: invalid read of size 4
-
-		float nuiPointCoordinates[3] = {x*GL_WIN_SIZE_X/float(depthFrame.getWidth()), y*GL_WIN_SIZE_Y/float(depthFrame.getHeight()), 0};
-
-		glVertexPointer(3, GL_FLOAT, 0, nuiPointCoordinates);
-		glColor3f(1.f, 0.f, 0.f);
-		glPointSize(7);
-		glDrawArrays(GL_POINTS, 0, 1);
-		glFlush();
+	float nuiPointCoordinates[nuiPoints.size() * 3];
+	int index = 0;
+	for (std::list<cv::Point3f>::const_iterator i = nuiPoints.begin(); i != nuiPoints.end(); ++i) {
+		nuiPointCoordinates[index++] = i->x * GL_WIN_SIZE_X / (float) depthFrame.getWidth();
+		nuiPointCoordinates[index++] = i->y * GL_WIN_SIZE_Y / (float) depthFrame.getHeight();
+		nuiPointCoordinates[index++] = 0;
 	}
+
+	glVertexPointer(3, GL_FLOAT, 0, nuiPointCoordinates);
+	glColor3f(1.f, 0.f, 0.f);
+	glPointSize(4.3);
+	glDrawArrays(GL_POINTS, 0, index);
+	glFlush();
 
 	// Swap the OpenGL display buffers
 	glutSwapBuffers();
-
-	//doMouseMove(nuiPoint); TODO: remove
 }
 
 void NUIViewer::doPointAction(const cv::Point3f& nuiPoint)

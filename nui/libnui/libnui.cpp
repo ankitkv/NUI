@@ -200,15 +200,15 @@ Status NUIPoints::getNextData(std::list<cv::Point3f>& nuiPoints, VideoFrameRef& 
 	int width = rawFrame.getWidth();
 	int height = rawFrame.getHeight();
 
-	for (int x = 1; x < width - 1; ++x) {
-		for (int y = 1; y < height - (height / 4.5); ++y)
+	for (int x = DEPTH_TRESHOLD_RANGE; x < width - DEPTH_TRESHOLD_RANGE; ++x) {
+		for (int y = DEPTH_TRESHOLD_RANGE; y < height - MAX(height / 4.5, DEPTH_TRESHOLD_RANGE); ++y)
 		{
 			if (pDepth[y * width + x] < FAR_LIMIT
 				&& pDepth[y * width + x] != 0
-				&& (pDepth[y * width + x] - pDepth[(y + 1) * width + (x + 1)] > DEPTH_TRESHOLD
-				|| pDepth[y * width + x] - pDepth[(y - 1) * width + (x + 1)] > DEPTH_TRESHOLD
-				|| pDepth[y * width + x] - pDepth[(y + 1) * width + (x - 1)] > DEPTH_TRESHOLD
-				|| pDepth[y * width + x] - pDepth[(y - 1) * width + (x - 1)] > DEPTH_TRESHOLD))
+				&& (pDepth[y * width + x] - pDepth[(y + DEPTH_TRESHOLD_RANGE) * width + (x + DEPTH_TRESHOLD_RANGE)] > DEPTH_TRESHOLD
+				|| pDepth[y * width + x] - pDepth[(y - DEPTH_TRESHOLD_RANGE) * width + (x + DEPTH_TRESHOLD_RANGE)] > DEPTH_TRESHOLD
+				|| pDepth[y * width + x] - pDepth[(y + DEPTH_TRESHOLD_RANGE) * width + (x - DEPTH_TRESHOLD_RANGE)] > DEPTH_TRESHOLD
+				|| pDepth[y * width + x] - pDepth[(y - DEPTH_TRESHOLD_RANGE) * width + (x - DEPTH_TRESHOLD_RANGE)] > DEPTH_TRESHOLD))
 			{
 				nuiPoint.x = x;
 				nuiPoint.y = y;
