@@ -3,7 +3,7 @@
 *  3D Natural User Interface for Operating Systems                           *
 *                                                                            *
 *  Anaglyph plugin                                                           *
-*  Copyright (c) 2007	Patryk Kowalczyk <wodor@wodor.org>                   *
+*  Copyright (c) 2007 Patryk Kowalczyk <wodor@wodor.org>                     *
 *  Ported to Compiz 0.9.x                                                    *
 *  Copyright (c) 2010 Sam Spilsbury <smspillaz@gmail.com>                    *
 *  Copyright (c) 2010 Scott Moreau                                           *
