@@ -24,10 +24,9 @@ $ git clone https://github.com/ankitkv/NUI.git
 
 To compile NUI, you will need the libraries for OpenNI, compiz development, OpenCV, OpenGL. You will also need cmake to build the compiz plugin.
 
-To build and install everything,
+To build and install everything, use this command from the source root directory:
 
 ```
-$ cd NUI
 $ ./make.sh
 ```
 
@@ -37,7 +36,7 @@ Before building anaglyph, you must first build and install libnui.
 From the source root directory,
 
 ```
-$ cd NUI/nui/bin
+$ cd nui/bin
 $ ./make.sh
 $ sudo ./make.sh install
 ```
@@ -46,7 +45,7 @@ Then, build and install the anaglyph compiz plugin.
 From the source root directory,
 
 ```
-$ cd NUI/anaglyph
+$ cd anaglyph
 $ ./make.sh
 $ sudo ./make.sh install
 ```
