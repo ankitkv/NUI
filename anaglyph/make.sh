@@ -25,8 +25,8 @@
 # Use sudo ./make.sh install to install the plugin
 
 if [[ $1 == "clean" ]]; then
-    ((rm -rf build/ > /dev/null \
-    && echo -e "\033[1;32mCleaned anaglyph.\033[0m") || echo -e "\033[1;31mCleaning anaglyph failed.\033[0m")
+  ((rm -rf build/ > /dev/null \
+  && echo -e "\033[1;32mCleaned anaglyph.\033[0m") || echo -e "\033[1;31mCleaning anaglyph failed.\033[0m")
 elif [[ $1 != "install" ]]; then
   if [[ $EUID -eq 0 ]]; then
     echo -e "\033[1;31mDo not run this as root.\033[0m"
