@@ -22,7 +22,7 @@
 ##############################################################################
 
 if [[ $1 == "clean" ]]; then
-  (cd anaglyph && ./make.sh clean)
+  (cd anaglyph && ./make.sh clean) && (cd nui && ./make.sh clean)
 else
   if [[ $EUID -eq 0 ]]; then
     echo -e "\033[1;31mDo not run this as root.\033[0m"

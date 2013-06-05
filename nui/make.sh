@@ -27,6 +27,7 @@
 # l OR lib:  Build only the library
 # v OR view: Build only the library and the viewer
 # t OR test: Build only the library and test app
+# clean:     Clean all binaries
 # 
 # If no argument is given, everything will be built
 #
@@ -38,7 +39,7 @@ if [[ $1 == "l"* ]]; then
     echo -e "\033[1;31mDo not run this as root.\033[0m"
   else
     echo -e "\033[1;34mCompiling...\033[0m"
-    (( echo -e "\033[1;33m-\033[0m libnui" && (cd libnui && make clean && make CFG=Debug) > /dev/null \
+    (( echo -e "\033[1;33m-\033[0m libnui" && (cd libnui && make CFG=Debug) > /dev/null \
     && echo -e "\033[1;32mSuccessfully compiled!\033[0m") || echo -e "\033[1;31mCompilation failed.\033[0m")
   fi
 elif [[ $1 == "v"* ]]; then
@@ -46,8 +47,8 @@ elif [[ $1 == "v"* ]]; then
     echo -e "\033[1;31mDo not run this as root.\033[0m"
   else
     echo -e "\033[1;34mCompiling...\033[0m"
-    (( echo -e "\033[1;33m-\033[0m libnui" && (cd libnui && make clean && make CFG=Debug) > /dev/null \
-    && echo -e "\033[1;33m-\033[0m viewer" && (cd viewer && make clean && make CFG=Debug) > /dev/null \
+    (( echo -e "\033[1;33m-\033[0m libnui" && (cd libnui && make CFG=Debug) > /dev/null \
+    && echo -e "\033[1;33m-\033[0m viewer" && (cd viewer && make CFG=Debug) > /dev/null \
     && echo -e "\033[1;32mSuccessfully compiled!\033[0m") || echo -e "\033[1;31mCompilation failed.\033[0m")
   fi
 elif [[ $1 == "t"* ]]; then
@@ -55,20 +56,27 @@ elif [[ $1 == "t"* ]]; then
     echo -e "\033[1;31mDo not run this as root.\033[0m"
   else
     echo -e "\033[1;34mCompiling...\033[0m"
-    (( echo -e "\033[1;33m-\033[0m libnui" && (cd libnui && make clean && make CFG=Debug) > /dev/null \
-    && echo -e "\033[1;33m-\033[0m test"   && (cd test   && make clean && make CFG=Debug) > /dev/null \
+    (( echo -e "\033[1;33m-\033[0m libnui" && (cd libnui && make CFG=Debug) > /dev/null \
+    && echo -e "\033[1;33m-\033[0m test"   && (cd test   && make CFG=Debug) > /dev/null \
     && echo -e "\033[1;32mSuccessfully compiled!\033[0m") || echo -e "\033[1;31mCompilation failed.\033[0m")
   fi
-elif [[ $1 != "install" ]]; then
+elif [[ $1 == "clean" ]]; then
   if [[ $EUID -eq 0 ]]; then
     echo -e "\033[1;31mDo not run this as root.\033[0m"
   else
-    echo -e "\033[1;34mCompiling...\033[0m"
-    (( echo -e "\033[1;33m-\033[0m libnui" && (cd libnui && make clean && make CFG=Debug) > /dev/null \
-    && echo -e "\033[1;33m-\033[0m viewer" && (cd viewer && make clean && make CFG=Debug) > /dev/null \
-    && echo -e "\033[1;33m-\033[0m test"   && (cd test   && make clean && make CFG=Debug) > /dev/null \
-    && echo -e "\033[1;32mSuccessfully compiled!\033[0m") || echo -e "\033[1;31mCompilation failed.\033[0m")
+    echo -e "\033[1;34mCleaning...\033[0m"
+    (( echo -e "\033[1;33m-\033[0m libnui" && (cd libnui && make clean) > /dev/null \
+    && echo -e "\033[1;33m-\033[0m viewer" && (cd viewer && make clean) > /dev/null \
+    && echo -e "\033[1;33m-\033[0m test"   && (cd test   && make clean) > /dev/null \
+    && rm -rf bin/Intermediate/ > /dev/null \
+    && echo -e "\033[1;32mCleaned.\033[0m") || echo -e "\033[1;31mCleaning failed.\033[0m")
   fi
+elif [[ $1 != "install" ]]; then
+  echo -e "\033[1;34mCompiling...\033[0m"
+  (( echo -e "\033[1;33m-\033[0m libnui" && (cd libnui && make CFG=Debug) > /dev/null \
+  && echo -e "\033[1;33m-\033[0m viewer" && (cd viewer && make CFG=Debug) > /dev/null \
+  && echo -e "\033[1;33m-\033[0m test"   && (cd test   && make CFG=Debug) > /dev/null \
+  && echo -e "\033[1;32mSuccessfully compiled!\033[0m") || echo -e "\033[1;31mCompilation failed.\033[0m")
 else
   if [[ $EUID -ne 0 ]]; then
     echo -e "\033[1;31mPlease run this as root.\033[0m"
