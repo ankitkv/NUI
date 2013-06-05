@@ -38,7 +38,7 @@ if [[ $1 == "l"* ]]; then
     echo -e "\033[1;31mDo not run this as root.\033[0m"
   else
     echo -e "\033[1;34mCompiling...\033[0m"
-    (( echo -e "\033[1;33m-\033[0m libnui" && (cd ../libnui && make clean && make CFG=Debug) > /dev/null \
+    (( echo -e "\033[1;33m-\033[0m libnui" && (cd libnui && make clean && make CFG=Debug) > /dev/null \
     && echo -e "\033[1;32mSuccessfully compiled!\033[0m") || echo -e "\033[1;31mCompilation failed.\033[0m")
   fi
 elif [[ $1 == "v"* ]]; then
@@ -46,8 +46,8 @@ elif [[ $1 == "v"* ]]; then
     echo -e "\033[1;31mDo not run this as root.\033[0m"
   else
     echo -e "\033[1;34mCompiling...\033[0m"
-    (( echo -e "\033[1;33m-\033[0m libnui" && (cd ../libnui && make clean && make CFG=Debug) > /dev/null \
-    && echo -e "\033[1;33m-\033[0m viewer" && (cd ../viewer && make clean && make CFG=Debug) > /dev/null \
+    (( echo -e "\033[1;33m-\033[0m libnui" && (cd libnui && make clean && make CFG=Debug) > /dev/null \
+    && echo -e "\033[1;33m-\033[0m viewer" && (cd viewer && make clean && make CFG=Debug) > /dev/null \
     && echo -e "\033[1;32mSuccessfully compiled!\033[0m") || echo -e "\033[1;31mCompilation failed.\033[0m")
   fi
 elif [[ $1 == "t"* ]]; then
@@ -55,8 +55,8 @@ elif [[ $1 == "t"* ]]; then
     echo -e "\033[1;31mDo not run this as root.\033[0m"
   else
     echo -e "\033[1;34mCompiling...\033[0m"
-    (( echo -e "\033[1;33m-\033[0m libnui" && (cd ../libnui && make clean && make CFG=Debug) > /dev/null \
-    && echo -e "\033[1;33m-\033[0m test"   && (cd ../test   && make clean && make CFG=Debug) > /dev/null \
+    (( echo -e "\033[1;33m-\033[0m libnui" && (cd libnui && make clean && make CFG=Debug) > /dev/null \
+    && echo -e "\033[1;33m-\033[0m test"   && (cd test   && make clean && make CFG=Debug) > /dev/null \
     && echo -e "\033[1;32mSuccessfully compiled!\033[0m") || echo -e "\033[1;31mCompilation failed.\033[0m")
   fi
 elif [[ $1 != "install" ]]; then
@@ -64,16 +64,16 @@ elif [[ $1 != "install" ]]; then
     echo -e "\033[1;31mDo not run this as root.\033[0m"
   else
     echo -e "\033[1;34mCompiling...\033[0m"
-    (( echo -e "\033[1;33m-\033[0m libnui" && (cd ../libnui && make clean && make CFG=Debug) > /dev/null \
-    && echo -e "\033[1;33m-\033[0m viewer" && (cd ../viewer && make clean && make CFG=Debug) > /dev/null \
-    && echo -e "\033[1;33m-\033[0m test"   && (cd ../test   && make clean && make CFG=Debug) > /dev/null \
+    (( echo -e "\033[1;33m-\033[0m libnui" && (cd libnui && make clean && make CFG=Debug) > /dev/null \
+    && echo -e "\033[1;33m-\033[0m viewer" && (cd viewer && make clean && make CFG=Debug) > /dev/null \
+    && echo -e "\033[1;33m-\033[0m test"   && (cd test   && make clean && make CFG=Debug) > /dev/null \
     && echo -e "\033[1;32mSuccessfully compiled!\033[0m") || echo -e "\033[1;31mCompilation failed.\033[0m")
   fi
 else
   if [[ $EUID -ne 0 ]]; then
     echo -e "\033[1;31mPlease run this as root.\033[0m"
   else
-    (install libnui.so /usr/local/lib/ && echo -e "\033[1;32mSuccessfully installed!\033[0m") || echo -e "\033[1;31mInstallation failed. Please make sure you have the correct permissions.\033[0m"
+    (install bin/libnui.so /usr/local/lib/ && echo -e "\033[1;32mSuccessfully installed!\033[0m") || echo -e "\033[1;31mInstallation failed. Please make sure you have the correct permissions.\033[0m"
   fi
 fi
 

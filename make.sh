@@ -27,7 +27,7 @@ else
   if [[ $EUID -eq 0 ]]; then
     echo -e "\033[1;31mDo not run this as root.\033[0m"
   else
-    (cd nui/bin && ./make.sh && sudo ./make.sh install) && (cd anaglyph && ./make.sh && sudo ./make.sh install)
+    (cd nui && ./make.sh && sudo ./make.sh install) && (cd anaglyph && ./make.sh && sudo ./make.sh install)
   fi
 fi
 
