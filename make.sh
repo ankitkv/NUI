@@ -21,9 +21,6 @@
 #                                                                            #
 ##############################################################################
 
-# If no argument is given, everything will be built
-# Use sudo ./make.sh install to install the plugin
-
 if [[ $1 == "clean" ]]; then
   (cd anaglyph && ./make.sh clean)
 else
