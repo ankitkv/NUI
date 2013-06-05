@@ -19,7 +19,7 @@ To download the latest revision of the project, you will need git. Use the follo
 $ git clone https://github.com/ankitkv/NUI.git
 ```
 
-To download the latest changes to the source code after the repository has been downloaded, use the following command from the NUI directory:
+To download the latest changes to the source code after the repository has been cloned, use the following command from the NUI directory:
 
 ```
 $ git pull
