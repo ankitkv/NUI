@@ -26,19 +26,11 @@
 
 if [[ $1 == "clean" ]]; then
   (cd anaglyph && ./make.sh clean)
-elif [[ $1 != "install" ]]; then
+else
   if [[ $EUID -eq 0 ]]; then
     echo -e "\033[1;31mDo not run this as root.\033[0m"
   else
-    (cd nui/bin && ./make.sh)
-    (cd anaglyph && ./make.sh)
-  fi
-else
-  if [[ $EUID -ne 0 ]]; then
-    echo -e "\033[1;31mPlease run this as root.\033[0m"
-  else
-    (cd nui/bin && ./make.sh install)
-    (cd anaglyph && ./make.sh install)
+    (cd nui/bin && ./make.sh && sudo ./make.sh install) && (cd anaglyph && ./make.sh && sudo ./make.sh install)
   fi
 fi
 
