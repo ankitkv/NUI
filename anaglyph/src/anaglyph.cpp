@@ -402,5 +402,7 @@ AnaglyphPluginVTable::init ()
 	!CompPlugin::checkPluginABI ("opengl", COMPIZ_OPENGL_ABI))
 	return false;
 
+	// load calibration data
+
     return true;
 }

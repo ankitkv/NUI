@@ -25,14 +25,13 @@
 int main(int argc, char** argv)
 {
 	int rc = openni::STATUS_OK;
+	bool debug = false;
 
 	const char* deviceURI = openni::ANY_DEVICE;
-	if (argc > 1)
-	{
-		deviceURI = argv[1];
-	}
+	if (argc > 1 && !strcmp(argv[1], "debug"))
+		debug = true;
 
-	NUIViewer nuiViewer("NUIPoints Viewer", deviceURI);
+	NUIViewer nuiViewer("NUIPoints Viewer", deviceURI, debug);
 
 	rc = nuiViewer.init(argc, argv);
 	if (rc != openni::STATUS_OK)

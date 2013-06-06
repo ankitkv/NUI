@@ -52,8 +52,8 @@ void NUIViewer::glutKeyboard(unsigned char key, int x, int y)
 	NUIViewer::ms_self->onKey(key, x, y);
 }
 
-NUIViewer::NUIViewer(const char* strNUIName, const char* deviceUri) :
-	m_pNUIPoints(NULL), m_pNUIPointsListener(NULL)
+NUIViewer::NUIViewer(const char* strNUIName, const char* deviceUri, bool debug) :
+	m_debug(debug), m_pNUIPoints(NULL), m_pNUIPointsListener(NULL)
 
 {
 	ms_self = this;
@@ -96,6 +96,9 @@ int NUIViewer::init(int argc, char **argv)
 
 	m_pNUIPointsListener = new NUIListener;
 	m_pNUIPoints->setListener(*m_pNUIPointsListener);
+
+	m_xDisplay = XOpenDisplay(NULL);
+	m_xScreenRoot = RootWindow(m_xDisplay, 0);
 
 	return initOpenGL(argc, argv);
 
@@ -196,11 +199,18 @@ void NUIViewer::display()
 	glEnd();
 	glDisable(GL_TEXTURE_2D);
 
-	float nuiPointCoordinates[nuiPoints.size() * 3];
+	float nuiPointCoordinates[m_debug ? nuiPoints.size() * 3 : 3];
 	int index = 0;
-	for (std::list<cv::Point3f>::const_iterator i = nuiPoints.begin(); i != nuiPoints.end(); ++i) {
-		nuiPointCoordinates[index++] = i->x * GL_WIN_SIZE_X / (float) depthFrame.getWidth();
-		nuiPointCoordinates[index++] = i->y * GL_WIN_SIZE_Y / (float) depthFrame.getHeight();
+
+	if (m_debug) {
+		for (std::list<cv::Point3f>::const_iterator i = nuiPoints.begin(); i != nuiPoints.end(); ++i) {
+			nuiPointCoordinates[index++] = i->x * GL_WIN_SIZE_X / (float) depthFrame.getWidth();
+			nuiPointCoordinates[index++] = i->y * GL_WIN_SIZE_Y / (float) depthFrame.getHeight();
+			nuiPointCoordinates[index++] = 0;
+		}
+	} else {
+		nuiPointCoordinates[index++] = nuiPoints.begin()->x * GL_WIN_SIZE_X / (float) depthFrame.getWidth();
+		nuiPointCoordinates[index++] = nuiPoints.begin()->y * GL_WIN_SIZE_Y / (float) depthFrame.getHeight();
 		nuiPointCoordinates[index++] = 0;
 	}
 
@@ -212,9 +222,11 @@ void NUIViewer::display()
 
 	// Swap the OpenGL display buffers
 	glutSwapBuffers();
+
+	doMouseMove(*(nuiPoints.begin()));
 }
 
-void NUIViewer::doPointAction(const cv::Point3f& nuiPoint)
+void NUIViewer::doMouseMove(const cv::Point3f& nuiPoint)
 {
 	if (!m_pNUIPoints->getCalibrationMgr()->isCalibrated())
 		return;
@@ -226,6 +238,9 @@ void NUIViewer::doPointAction(const cv::Point3f& nuiPoint)
 	if (point.y >= SCREEN_HEIGHT) point.y = SCREEN_HEIGHT - 1.0;
 	if (point.z < 0.0) point.z = 0.0;
 	printf("point: (%f, %f)\tAbove screen: %f\n", point.x, point.y, point.z);
+
+	XWarpPointer(m_xDisplay, None, m_xScreenRoot, 0, 0, 0, 0, point.x, point.y);
+	XFlush(m_xDisplay);
 }
 
 void NUIViewer::onKey(unsigned char key, int /*x*/, int /*y*/)
@@ -233,26 +248,31 @@ void NUIViewer::onKey(unsigned char key, int /*x*/, int /*y*/)
 	switch (key)
 	{
 	case 'q':
-//		m_pNUIPoints->getCalibrationMgr()->calibrate(m_pNUIPointsListener->getNUIPoints(), 0, 0); TODO: fix calibration
+		m_pNUIPoints->getCalibrationMgr()->calibrate(*(m_pNUIPointsListener->getNUIPoints().begin()), 0, 0);
 		break;
 	case 'w':
-//		m_pNUIPoints->getCalibrationMgr()->calibrate(m_pNUIPointsListener->getNUIPoints(), 0, 1);
+		m_pNUIPoints->getCalibrationMgr()->calibrate(*(m_pNUIPointsListener->getNUIPoints().begin()), 0, 1);
 		break;
 	case 'a':
-//		m_pNUIPoints->getCalibrationMgr()->calibrate(m_pNUIPointsListener->getNUIPoints(), 1, 0);
+		m_pNUIPoints->getCalibrationMgr()->calibrate(*(m_pNUIPointsListener->getNUIPoints().begin()), 1, 0);
 		break;
 	case 's':
-//		m_pNUIPoints->getCalibrationMgr()->calibrate(m_pNUIPointsListener->getNUIPoints(), 1, 1);
+		m_pNUIPoints->getCalibrationMgr()->calibrate(*(m_pNUIPointsListener->getNUIPoints().begin()), 1, 1);
 		break;
 	case 'd':
-		if (m_pNUIPoints->getCalibrationMgr()->isCalibrated())
+		if (m_pNUIPoints->getCalibrationMgr()->isCalibrated()) {
 			m_pNUIPoints->getCalibrationMgr()->uncalibrate();
+			// TODO: delete file.
+		}
 		break;
 	case 27:
 		finalize();
 		exit (1);
 	}
 
+	if (m_pNUIPoints->getCalibrationMgr()->isCalibrated()) {
+		// TODO: save file.
+	}
 }
 
 int NUIViewer::initOpenGL(int argc, char **argv)

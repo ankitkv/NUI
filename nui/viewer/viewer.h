@@ -65,13 +65,13 @@ private:
 class NUIViewer
 {
 public:
-	NUIViewer(const char* strNUIName, const char* deviceUri);
+	NUIViewer(const char* strNUIName, const char* deviceUri, bool debug);
 	virtual ~NUIViewer();
 
 	virtual int init(int argc, char **argv);
 	virtual int run();	//Does not return
 
-	void doPointAction(const cv::Point3f& nuiPoint);
+	void doMouseMove(const cv::Point3f& nuiPoint);
 
 protected:
 	virtual void display();
@@ -93,11 +93,15 @@ private:
 	static void glutDisplay();
 	static void glutKeyboard(unsigned char key, int x, int y);
 
+	bool					m_debug;
 	float					m_pDepthHist[MAX_DEPTH];
 	char					m_strNUIName[ONI_MAX_STR];
 	openni::RGB888Pixel*	m_pTexMap;
 	unsigned int			m_nTexMapX;
 	unsigned int			m_nTexMapY;
+
+	Display *m_xDisplay;
+	Window m_xScreenRoot;
 
 	nui::NUIPoints* m_pNUIPoints;
 	NUIListener* m_pNUIPointsListener;
