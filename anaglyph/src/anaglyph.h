@@ -58,6 +58,7 @@ class AnaglyphScreen :
 	AnaglyphScreen (CompScreen *);
 	~AnaglyphScreen ();
 
+	CompScreen *compScreen;
 	CompositeScreen *cScreen;
 	GLScreen	*gScreen;
 	
@@ -102,6 +103,12 @@ class AnaglyphWindow :
 	CompositeWindow *cWindow;
 	
 	bool mIsAnaglyph;
+
+	bool isTouched;
+	float oldx;
+	float oldy;
+	std::list<float> xbuffer;
+	std::list<float> ybuffer;
 
 	void toggle ();
 	

@@ -249,6 +249,7 @@ AnaglyphScreen::optionChanged (CompOption *option,
 AnaglyphScreen::AnaglyphScreen (CompScreen *s) :
     PluginClassHandler <AnaglyphScreen, CompScreen> (s),
     myListener(NULL),
+    compScreen(s),
     cScreen (CompositeScreen::get (screen)),
     gScreen (GLScreen::get (screen)),
     mIsAnaglyph (false),
@@ -289,7 +290,8 @@ AnaglyphWindow::AnaglyphWindow (CompWindow *w) :
     window (w),
     gWindow (GLWindow::get (w)),
     cWindow (CompositeWindow::get (w)),
-    mIsAnaglyph (false)
+    mIsAnaglyph (false),
+    oldx(-1), oldy(-1)
 {
     ANAGLYPH_SCREEN (screen);
 
@@ -338,17 +340,55 @@ AnaglyphScreen::NUIListener::NUIListener(AnaglyphScreen *s) : screen(s)
 
 void AnaglyphScreen::NUIListener::readyForNextData(nui::NUIPoints* pNUIPoints)
 {
-	int x, y, z;
 	openni::VideoFrameRef frame;
 	std::list<cv::Point3f> nuiPoints;
 	int rc = pNUIPoints->getNextData(nuiPoints, frame);
 
 	if (rc == openni::STATUS_OK)
 	{
-	}
-	else
-	{
-		//printf("Update failed\n");
+		foreach (CompWindow *w, screen->compScreen->windows()) {
+			ANAGLYPH_WINDOW(w);
+			aw->isTouched = false;
+		}
+
+		for (std::list<cv::Point3f>::iterator i = nuiPoints.begin(); i != nuiPoints.end(); ++i) {
+			foreach (CompWindow *w, screen->compScreen->windows()) {
+				if (i->x >= w->x() && i->x < w->width()
+				 && i->y >= w->y() && i->y < w->height()) {
+					ANAGLYPH_WINDOW(w);
+
+					if ((aw->window->id() == screen->compScreen->activeWindow() && i->z < 100) || i->z < 50) {
+						aw->isTouched = true;
+						aw->xbuffer.push_back(i->x);
+						aw->ybuffer.push_back(i->y);
+					}
+				}
+			}
+		}
+
+		foreach (CompWindow *w, screen->compScreen->windows()) {
+			ANAGLYPH_WINDOW(w);
+			if (aw->isTouched) {
+				float avgx = 0, avgy = 0, dx, dy;
+				for (std::list<float>::iterator i = aw->xbuffer.begin(); i != aw->xbuffer.end(); ++i)
+					avgx += *i;
+				for (std::list<float>::iterator i = aw->ybuffer.begin(); i != aw->ybuffer.end(); ++i)
+					avgy += *i;
+				avgx /= aw->xbuffer.size();
+				avgy /= aw->ybuffer.size();
+
+				dx = aw->oldx == -1 ? 0 : avgx - aw->oldx;
+				dy = aw->oldy == -1 ? 0 : avgx - aw->oldy;
+				aw->window->move(dx, dy, true);
+
+				aw->oldx = avgx;
+				aw->oldy = avgy;
+				aw->xbuffer.clear();
+				aw->ybuffer.clear();
+			} else {
+				aw->oldx = aw->oldy = -1;
+			}
+		}
 	}
 }
 
