@@ -372,11 +372,11 @@ void AnaglyphScreen::NUIListener::readyForNextData(nui::NUIPoints* pNUIPoints)
 			if (point.z < 0.0) point.z = 0.0;
 	
 			foreach (CompWindow *w, screen->compScreen->windows()) {
-				if (point.x >= w->x() && point.x < w->width()
-				 && point.y >= w->y() && point.y < w->height()) {
+				if (point.x >= w->x() && point.x < w->x() + w->width()
+				 && point.y >= w->y() && point.y < w->y() + w->height()) {
 					ANAGLYPH_WINDOW(w);
 
-					if ((aw->window->id() == screen->compScreen->activeWindow() && point.z < 100) || point.z < 50) {
+					if ((aw->window->id() == screen->compScreen->activeWindow() && point.z < 25) || point.z < 10) {
 						aw->isTouched = true;
 						aw->xbuffer.push_back(point.x);
 						aw->ybuffer.push_back(point.y);
