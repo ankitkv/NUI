@@ -26,7 +26,7 @@
 #include <GL/glut.h>
 #include <vector>
 #include <cstdio>
-#include <fstream>
+#include <pwd.h>
 
 #define GL_WIN_SIZE_X	1280
 #define GL_WIN_SIZE_Y	1024
@@ -261,10 +261,12 @@ void NUICalib::onKey(unsigned char key, int /*x*/, int /*y*/)
 	case 's':
 		m_pNUIPoints->getCalibrationMgr()->calibrate(*(m_pNUIPointsListener->getNUIPoints().begin()), 1, 1);
 		break;
-	case 'd':
-		if (m_pNUIPoints->getCalibrationMgr()->isCalibrated()) {
+	case 'd': {
+		if (m_pNUIPoints->getCalibrationMgr()->isCalibrated())
 			m_pNUIPoints->getCalibrationMgr()->uncalibrate();
-			remove("~/.nuicalib");
+
+		passwd *pw = getpwuid(getuid());
+		remove((std::string(pw->pw_dir) + "/.nuicalib.xml").c_str());
 		}
 		break;
 	case 27:
@@ -273,14 +275,16 @@ void NUICalib::onKey(unsigned char key, int /*x*/, int /*y*/)
 	}
 
 	if (m_pNUIPoints->getCalibrationMgr()->isCalibrated()) {
-		std::ofstream fout("~/.nuicalib");
-		if (!fout) {
-			printf("could not write calibration file ~/.nuicalib\n");
+		passwd *pw = getpwuid(getuid());
+		cv::FileStorage ofs(std::string(pw->pw_dir) + "/.nuicalib.xml", cv::FileStorage::WRITE);
+		if (!ofs.isOpened()) {
+			printf("could not write calibration file ~/.nuicalib.xml\n");
 			exit(1);
 		}
-		fout << m_pNUIPoints->getCalibrationMgr()->getRotateMatrix()
-		     << *(m_pNUIPoints->getCalibrationMgr()->getCalibMatrix());
-		fout.close();
+
+		ofs << "rotation" << m_pNUIPoints->getCalibrationMgr()->getRotateMatrix();
+		ofs << "calibration" << *(m_pNUIPoints->getCalibrationMgr()->getCalibMatrix());
+		ofs.release();
 	}
 }
 

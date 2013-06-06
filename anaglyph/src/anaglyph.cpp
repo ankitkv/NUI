@@ -29,7 +29,7 @@
 #include "anaglyph.h"
 
 #include <list>
-#include <fstream>
+#include <pwd.h>
 
 COMPIZ_PLUGIN_20090315(anaglyph, AnaglyphPluginVTable);
 
@@ -318,11 +318,13 @@ void AnaglyphScreen::createNUIPoints(AnaglyphScreen *screen)
 			myListener = new NUIListener(screen);
 			nuiPoints->setListener(*myListener);
 
-			std::ifstream fin("~/.nuipoint");
-			if (fin) {
+			passwd *pw = getpwuid(getuid());
+			cv::FileStorage ifs(std::string(pw->pw_dir) + "/.nuicalib.xml", cv::FileStorage::READ);
+			if (ifs.isOpened()) {
 				cv::Mat rotateMatrix, calibMatrix;
-//				fin >> rotateMatrix >> calibMatrix; TODO
-				fin.close();
+				ifs["rotation"] >> rotateMatrix;
+				ifs["calibration"] >> calibMatrix;
+				ifs.release();
 				nuiPoints->getCalibrationMgr()->calibrate(rotateMatrix, calibMatrix);
 			}
 		}
@@ -347,6 +349,9 @@ AnaglyphScreen::NUIListener::NUIListener(AnaglyphScreen *s) : screen(s)
 
 void AnaglyphScreen::NUIListener::readyForNextData(nui::NUIPoints* pNUIPoints)
 {
+	if (!pNUIPoints->getCalibrationMgr()->isCalibrated())
+		return;
+
 	openni::VideoFrameRef frame;
 	std::list<cv::Point3f> nuiPoints;
 	int rc = pNUIPoints->getNextData(nuiPoints, frame);
@@ -359,15 +364,22 @@ void AnaglyphScreen::NUIListener::readyForNextData(nui::NUIPoints* pNUIPoints)
 		}
 
 		for (std::list<cv::Point3f>::iterator i = nuiPoints.begin(); i != nuiPoints.end(); ++i) {
+			cv::Point3f point = pNUIPoints->getCalibrationMgr()->getCalibratedPoint(*i);
+			if (point.x < 0.0) point.x = 0.0;
+			if (point.x >= SCREEN_WIDTH) point.x = SCREEN_WIDTH - 1.0;
+			if (point.y < 0.0) point.y = 0.0;
+			if (point.y >= SCREEN_HEIGHT) point.y = SCREEN_HEIGHT - 1.0;
+			if (point.z < 0.0) point.z = 0.0;
+	
 			foreach (CompWindow *w, screen->compScreen->windows()) {
-				if (i->x >= w->x() && i->x < w->width()
-				 && i->y >= w->y() && i->y < w->height()) {
+				if (point.x >= w->x() && point.x < w->width()
+				 && point.y >= w->y() && point.y < w->height()) {
 					ANAGLYPH_WINDOW(w);
 
-					if ((aw->window->id() == screen->compScreen->activeWindow() && i->z < 100) || i->z < 50) {
+					if ((aw->window->id() == screen->compScreen->activeWindow() && point.z < 100) || point.z < 50) {
 						aw->isTouched = true;
-						aw->xbuffer.push_back(i->x);
-						aw->ybuffer.push_back(i->y);
+						aw->xbuffer.push_back(point.x);
+						aw->ybuffer.push_back(point.y);
 					}
 				}
 			}

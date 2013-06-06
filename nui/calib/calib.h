@@ -29,7 +29,6 @@
 #include <list>
 
 #define MAX_DEPTH 10000
-#define SAMPLES 6
 
 class NUIListener : public nui::NUIPoints::Listener
 {
@@ -39,15 +38,6 @@ public:
 	void readyForNextData(nui::NUIPoints* pNUIPoints)
 	{
 		int rc = pNUIPoints->getNextData(m_nuiPoints, m_frame);
-
-		if (rc == openni::STATUS_OK)
-		{
-//			printf("%d, %d, %d\n", m_nuiPoint.x, m_nuiPoint.Y, m_nuiPoint.Z);
-		}
-		else
-		{
-			printf("Update failed\n");
-		}
 		m_ready = true;
 	}
 
