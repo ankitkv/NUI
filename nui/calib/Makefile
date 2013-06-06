@@ -20,6 +20,6 @@ EXE_NAME = calib
 
 CFLAGS += -Wall
 
-LDFLAGS += -lX11
+LDFLAGS += -lX11 -lopencv_core
 
 include ../build/CommonCppMakefile

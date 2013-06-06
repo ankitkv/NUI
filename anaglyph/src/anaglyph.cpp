@@ -29,6 +29,7 @@
 #include "anaglyph.h"
 
 #include <list>
+#include <fstream>
 
 COMPIZ_PLUGIN_20090315(anaglyph, AnaglyphPluginVTable);
 
@@ -274,8 +275,6 @@ AnaglyphScreen::AnaglyphScreen (CompScreen *s) :
 					       this, _1, _2));
     optionSetExcludeMatchNotify (boost::bind (&AnaglyphScreen::optionChanged,
 					      this, _1, _2));
-
-
 }
 
 AnaglyphScreen::~AnaglyphScreen ()
@@ -318,6 +317,14 @@ void AnaglyphScreen::createNUIPoints(AnaglyphScreen *screen)
 		} else {
 			myListener = new NUIListener(screen);
 			nuiPoints->setListener(*myListener);
+
+			std::ifstream fin("~/.nuipoint");
+			if (fin) {
+				cv::Mat rotateMatrix, calibMatrix;
+//				fin >> rotateMatrix >> calibMatrix; TODO
+				fin.close();
+				nuiPoints->getCalibrationMgr()->calibrate(rotateMatrix, calibMatrix);
+			}
 		}
 	}
 }
@@ -401,8 +408,6 @@ AnaglyphPluginVTable::init ()
 	!CompPlugin::checkPluginABI ("composite", COMPIZ_COMPOSITE_ABI) ||
 	!CompPlugin::checkPluginABI ("opengl", COMPIZ_OPENGL_ABI))
 	return false;
-
-	// load calibration data
 
     return true;
 }

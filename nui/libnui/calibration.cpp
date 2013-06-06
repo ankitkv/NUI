@@ -91,6 +91,15 @@ void CalibrationMgr::calibrate(const cv::Point3f& nuiPoint, int X, int Y)
 	*m_pCalibMatrix = cv::findHomography(src, dest, CV_RANSAC);
 }
 
+void CalibrationMgr::calibrate(cv::Mat& rotateMatrix, cv::Mat& calibMatrix)
+{
+	if (!m_pCalibMatrix)
+		m_pCalibMatrix = new cv::Mat();
+
+	m_pRotateMatrix = rotateMatrix;
+	*m_pCalibMatrix = calibMatrix;
+}
+
 void CalibrationMgr::uncalibrate()
 {
 	if (m_pCalibMatrix) {

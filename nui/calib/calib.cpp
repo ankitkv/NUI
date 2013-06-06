@@ -25,6 +25,8 @@
 
 #include <GL/glut.h>
 #include <vector>
+#include <cstdio>
+#include <fstream>
 
 #define GL_WIN_SIZE_X	1280
 #define GL_WIN_SIZE_Y	1024
@@ -262,7 +264,7 @@ void NUICalib::onKey(unsigned char key, int /*x*/, int /*y*/)
 	case 'd':
 		if (m_pNUIPoints->getCalibrationMgr()->isCalibrated()) {
 			m_pNUIPoints->getCalibrationMgr()->uncalibrate();
-			// TODO: delete file.
+			remove("~/.nuicalib");
 		}
 		break;
 	case 27:
@@ -271,7 +273,14 @@ void NUICalib::onKey(unsigned char key, int /*x*/, int /*y*/)
 	}
 
 	if (m_pNUIPoints->getCalibrationMgr()->isCalibrated()) {
-		// TODO: save file.
+		std::ofstream fout("~/.nuicalib");
+		if (!fout) {
+			printf("could not write calibration file ~/.nuicalib\n");
+			exit(1);
+		}
+		fout << m_pNUIPoints->getCalibrationMgr()->getRotateMatrix()
+		     << *(m_pNUIPoints->getCalibrationMgr()->getCalibMatrix());
+		fout.close();
 	}
 }
 

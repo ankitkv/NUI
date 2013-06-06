@@ -42,10 +42,14 @@ public:
 	~CalibrationMgr();
 
 	void calibrate(const cv::Point3f& nuiPoint, int X, int Y);
+	void calibrate(cv::Mat& rotateMatrix, cv::Mat& calibMatrix);
 	void uncalibrate();
 	cv::Point3f getCalibratedPoint(const cv::Point3f&);
 	bool isCalibrated();
 	static cv::Point3f getWorldPoint(openni::VideoStream &stream, const cv::Point3f&);
+	
+	cv::Mat& getRotateMatrix() { return m_pRotateMatrix; }
+	cv::Mat* getCalibMatrix()  { return m_pCalibMatrix;  }
 };
 
 }
