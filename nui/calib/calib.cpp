@@ -102,6 +102,16 @@ int NUICalib::init(int argc, char **argv)
 	m_xDisplay = XOpenDisplay(NULL);
 	m_xScreenRoot = RootWindow(m_xDisplay, 0);
 
+	passwd *pw = getpwuid(getuid());
+	cv::FileStorage ifs(std::string(pw->pw_dir) + "/.nuicalib.xml", cv::FileStorage::READ);
+	if (ifs.isOpened()) {
+		cv::Mat rotateMatrix, calibMatrix;
+		ifs["rotation"] >> rotateMatrix;
+		ifs["calibration"] >> calibMatrix;
+		ifs.release();
+		m_pNUIPoints->getCalibrationMgr()->calibrate(rotateMatrix, calibMatrix);
+	}
+
 	return initOpenGL(argc, argv);
 
 }
