@@ -62,11 +62,11 @@ private:
 };
 
 
-class NUIViewer
+class NUICalib
 {
 public:
-	NUIViewer(const char* strNUIName, const char* deviceUri, bool debug);
-	virtual ~NUIViewer();
+	NUICalib(const char* strNUIName, const char* deviceUri, bool debug);
+	virtual ~NUICalib();
 
 	virtual int init(int argc, char **argv);
 	virtual int run();	//Does not return
@@ -85,10 +85,10 @@ protected:
 	void finalize();
 
 private:
-	NUIViewer(const NUIViewer&);
-	NUIViewer& operator=(NUIViewer&);
+	NUICalib(const NUICalib&);
+	NUICalib& operator=(NUICalib&);
 
-	static NUIViewer* ms_self;
+	static NUICalib* ms_self;
 	static void glutIdle();
 	static void glutDisplay();
 	static void glutKeyboard(unsigned char key, int x, int y);

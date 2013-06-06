@@ -20,7 +20,7 @@
 *                                                                            *
 *****************************************************************************/
 
-#include "viewer.h"
+#include "calib.h"
 
 int main(int argc, char** argv)
 {
@@ -31,12 +31,12 @@ int main(int argc, char** argv)
 	if (argc > 1 && !strcmp(argv[1], "debug"))
 		debug = true;
 
-	NUIViewer nuiViewer("NUIPoints Viewer", deviceURI, debug);
+	NUICalib nuiCalib("NUIPoints Calib", deviceURI, debug);
 
-	rc = nuiViewer.init(argc, argv);
+	rc = nuiCalib.init(argc, argv);
 	if (rc != openni::STATUS_OK)
 	{
 		return 1;
 	}
-	nuiViewer.run();
+	nuiCalib.run();
 }

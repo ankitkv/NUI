@@ -20,7 +20,7 @@
 *                                                                            *
 *****************************************************************************/
 
-#include "viewer.h"
+#include "calib.h"
 #include "utilities.h"
 
 #include <GL/glut.h>
@@ -37,22 +37,22 @@
 
 #define SAMPLES 6
 
-NUIViewer* NUIViewer::ms_self = NULL;
+NUICalib* NUICalib::ms_self = NULL;
 
-void NUIViewer::glutIdle()
+void NUICalib::glutIdle()
 {
 	glutPostRedisplay();
 }
-void NUIViewer::glutDisplay()
+void NUICalib::glutDisplay()
 {
-	NUIViewer::ms_self->display();
+	NUICalib::ms_self->display();
 }
-void NUIViewer::glutKeyboard(unsigned char key, int x, int y)
+void NUICalib::glutKeyboard(unsigned char key, int x, int y)
 {
-	NUIViewer::ms_self->onKey(key, x, y);
+	NUICalib::ms_self->onKey(key, x, y);
 }
 
-NUIViewer::NUIViewer(const char* strNUIName, const char* deviceUri, bool debug) :
+NUICalib::NUICalib(const char* strNUIName, const char* deviceUri, bool debug) :
 	m_debug(debug), m_pNUIPoints(NULL), m_pNUIPointsListener(NULL)
 
 {
@@ -61,7 +61,7 @@ NUIViewer::NUIViewer(const char* strNUIName, const char* deviceUri, bool debug) 
 
 	m_pNUIPoints = new nui::NUIPoints(deviceUri);
 }
-NUIViewer::~NUIViewer()
+NUICalib::~NUICalib()
 {
 	finalize();
 
@@ -70,7 +70,7 @@ NUIViewer::~NUIViewer()
 	ms_self = NULL;
 }
 
-void NUIViewer::finalize()
+void NUICalib::finalize()
 {
 	if (m_pNUIPoints != NULL)
 	{
@@ -85,7 +85,7 @@ void NUIViewer::finalize()
 	}
 }
 
-int NUIViewer::init(int argc, char **argv)
+int NUICalib::init(int argc, char **argv)
 {
 	m_pTexMap = NULL;
 
@@ -103,13 +103,13 @@ int NUIViewer::init(int argc, char **argv)
 	return initOpenGL(argc, argv);
 
 }
-int NUIViewer::run()	//Does not return
+int NUICalib::run()	//Does not return
 {
 	glutMainLoop();
 
 	return openni::STATUS_OK;
 }
-void NUIViewer::display()
+void NUICalib::display()
 {
 	if (!m_pNUIPointsListener->isAvailable())
 	{
@@ -226,7 +226,7 @@ void NUIViewer::display()
 	doMouseMove(*(nuiPoints.begin()));
 }
 
-void NUIViewer::doMouseMove(const cv::Point3f& nuiPoint)
+void NUICalib::doMouseMove(const cv::Point3f& nuiPoint)
 {
 	if (!m_pNUIPoints->getCalibrationMgr()->isCalibrated())
 		return;
@@ -243,7 +243,7 @@ void NUIViewer::doMouseMove(const cv::Point3f& nuiPoint)
 	XFlush(m_xDisplay);
 }
 
-void NUIViewer::onKey(unsigned char key, int /*x*/, int /*y*/)
+void NUICalib::onKey(unsigned char key, int /*x*/, int /*y*/)
 {
 	switch (key)
 	{
@@ -275,7 +275,7 @@ void NUIViewer::onKey(unsigned char key, int /*x*/, int /*y*/)
 	}
 }
 
-int NUIViewer::initOpenGL(int argc, char **argv)
+int NUICalib::initOpenGL(int argc, char **argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
@@ -295,7 +295,7 @@ int NUIViewer::initOpenGL(int argc, char **argv)
 	return openni::STATUS_OK;
 
 }
-void NUIViewer::initOpenGLHooks()
+void NUICalib::initOpenGLHooks()
 {
 	glutKeyboardFunc(glutKeyboard);
 	glutDisplayFunc(glutDisplay);

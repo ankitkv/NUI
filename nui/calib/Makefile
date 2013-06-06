@@ -16,7 +16,7 @@ USED_LIBS += glut GL
 
 USED_LIBS += OpenNI2 nui
 
-EXE_NAME = viewer
+EXE_NAME = calib
 
 CFLAGS += -Wall
 
