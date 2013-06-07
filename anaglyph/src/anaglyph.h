@@ -73,7 +73,8 @@ class AnaglyphScreen :
 
 	void
 	optionChanged (CompOption *, Options);
-	
+
+	bool isNormalWindow(CompWindow *w);
 	bool
 	glPaintOutput (const GLScreenPaintAttrib &,
 		       const GLMatrix		 &,

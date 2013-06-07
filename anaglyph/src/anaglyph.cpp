@@ -90,63 +90,6 @@ AnaglyphWindow::glPaint (const GLWindowPaintAttrib &attrib,
     bool status;
     ANAGLYPH_SCREEN(screen);
 
-	if (!as->myListener->points.empty())
-	{
-		foreach (CompWindow *w, screen->windows()) {
-			ANAGLYPH_WINDOW(w);
-			aw->isTouched = false;
-		}
-
-		for (std::list<cv::Point3f>::iterator i = as->myListener->points.begin(); i != as->myListener->points.end(); ++i) {
-			cv::Point3f point = as->nuiPoints->getCalibrationMgr()->getCalibratedPoint(*i);
-			if (point.x < 0.0) point.x = 0.0;
-			if (point.x >= SCREEN_WIDTH) point.x = SCREEN_WIDTH - 1.0;
-			if (point.y < 0.0) point.y = 0.0;
-			if (point.y >= SCREEN_HEIGHT) point.y = SCREEN_HEIGHT - 1.0;
-			if (point.z < 0.0) point.z = 0.0;
-
-			foreach (CompWindow *w, screen->windows()) {
-				if (point.x >= w->geometry().x() && point.x < w->geometry().x() + w->size().width()
-				 && point.y >= w->geometry().y() && point.y < w->geometry().y() + w->size().height()) {
-					ANAGLYPH_WINDOW(w);
-
-					if ((aw->window->id() == screen->activeWindow() && point.z < 25) || point.z < 10) {
-						aw->isTouched = true;
-						aw->xbuffer.push_back(point.x);
-						aw->ybuffer.push_back(point.y);
-					}
-				}
-			}
-		}
-
-		foreach (CompWindow *w, screen->windows()) {
-			ANAGLYPH_WINDOW(w);
-			if (aw->isTouched) {
-				float avgx = 0, avgy = 0, dx, dy;
-				for (std::list<float>::iterator i = aw->xbuffer.begin(); i != aw->xbuffer.end(); ++i)
-					avgx += *i;
-				for (std::list<float>::iterator i = aw->ybuffer.begin(); i != aw->ybuffer.end(); ++i)
-					avgy += *i;
-				avgx /= aw->xbuffer.size();
-				avgy /= aw->ybuffer.size();
-
-				dx = aw->oldx == -1 ? 0 : avgx - aw->oldx;
-				dy = aw->oldy == -1 ? 0 : avgy - aw->oldy;
-				aw->window->move(dx, dy, true);
-				aw->window->syncPosition();
-
-				aw->oldx = avgx;
-				aw->oldy = avgy;
-				aw->xbuffer.clear();
-				aw->ybuffer.clear();
-			} else {
-				aw->oldx = aw->oldy = -1;
-			}
-		}
-		
-		as->myListener->points.clear();
-	}
-
     if (mIsAnaglyph && gWindow->textures ().size ())
     {
 	//if (as->isAnaglyph)
@@ -258,6 +201,21 @@ AnaglyphWindow::damageRect (bool initial,
 
 //----------------------------------------------------------------- PAINT OUTPUT
 
+bool AnaglyphScreen::isNormalWindow(CompWindow *w)
+{
+	if (w->type () & CompWindowTypeDesktopMask
+	 || w->state () & CompWindowStateShadedMask
+	 || w->state () & CompWindowStateMaximizedHorzMask
+	 || w->state () & CompWindowStateMaximizedVertMask
+	 || w->type () & CompWindowTypeDockMask
+	 || w->state () & CompWindowStateStickyMask
+	 || w->state () & CompWindowStateBelowMask
+	 || w->state () & CompWindowStateAboveMask)
+		return false;
+	else
+		return true;
+}
+
 bool
 AnaglyphScreen::glPaintOutput (const GLScreenPaintAttrib &attrib,
 			      const GLMatrix		&transform,
@@ -266,6 +224,74 @@ AnaglyphScreen::glPaintOutput (const GLScreenPaintAttrib &attrib,
 			      unsigned int		mask)
 {
     mask |= PAINT_SCREEN_WITH_TRANSFORMED_WINDOWS_MASK;
+    ANAGLYPH_SCREEN(screen);
+
+	if (mIsAnaglyph) {
+		if (!as->myListener->points.empty())
+		{
+			foreach (CompWindow *w, screen->windows()) {
+				if (!isNormalWindow(w))
+					continue;
+				ANAGLYPH_WINDOW(w);
+				aw->isTouched = false;
+			}
+
+			for (std::list<cv::Point3f>::iterator i = as->myListener->points.begin(); i != as->myListener->points.end(); ++i) {
+				cv::Point3f point = as->nuiPoints->getCalibrationMgr()->getCalibratedPoint(*i);
+				if (point.x < 0.0) point.x = 0.0;
+				if (point.x >= SCREEN_WIDTH) point.x = SCREEN_WIDTH - 1.0;
+				if (point.y < 0.0) point.y = 0.0;
+				if (point.y >= SCREEN_HEIGHT) point.y = SCREEN_HEIGHT - 1.0;
+				if (point.z < 0.0) point.z = 0.0;
+
+				foreach (CompWindow *w, screen->windows()) {
+				if (!isNormalWindow(w))
+					continue;
+
+					if (point.x >= w->geometry().x() && point.x < w->geometry().x() + w->size().width()
+					 && point.y >= w->geometry().y() && point.y < w->geometry().y() + w->size().height()) {
+						ANAGLYPH_WINDOW(w);
+
+						if ((aw->window->id() == screen->activeWindow() && point.z < 25) || point.z < 10) {
+							aw->isTouched = true;
+							aw->xbuffer.push_back(point.x);
+							aw->ybuffer.push_back(point.y);
+						}
+					}
+				}
+			}
+
+			foreach (CompWindow *w, screen->windows()) {
+				if (!isNormalWindow(w))
+					continue;
+
+				ANAGLYPH_WINDOW(w);
+				if (aw->isTouched) {
+					float avgx = 0, avgy = 0, dx, dy;
+					for (std::list<float>::iterator i = aw->xbuffer.begin(); i != aw->xbuffer.end(); ++i)
+						avgx += *i;
+					for (std::list<float>::iterator i = aw->ybuffer.begin(); i != aw->ybuffer.end(); ++i)
+						avgy += *i;
+					avgx /= aw->xbuffer.size();
+					avgy /= aw->ybuffer.size();
+
+					dx = aw->oldx == -1 ? 0 : avgx - aw->oldx;
+					dy = aw->oldy == -1 ? 0 : avgy - aw->oldy;
+					aw->window->move(dx, dy, true);
+					aw->window->syncPosition();
+
+					aw->oldx = avgx;
+					aw->oldy = avgy;
+					aw->xbuffer.clear();
+					aw->ybuffer.clear();
+				} else {
+					aw->oldx = aw->oldy = -1;
+				}
+			}
+
+			as->myListener->points.clear();
+		}
+	}
 
     return gScreen->glPaintOutput (attrib, transform, region, output, mask);
 }
