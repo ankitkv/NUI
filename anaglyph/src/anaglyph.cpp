@@ -250,7 +250,7 @@ AnaglyphScreen::optionChanged (CompOption *option,
 AnaglyphScreen::AnaglyphScreen (CompScreen *s) :
     PluginClassHandler <AnaglyphScreen, CompScreen> (s),
     myListener(NULL),
-    compScreen(s),
+    compScreen(screen),
     cScreen (CompositeScreen::get (screen)),
     gScreen (GLScreen::get (screen)),
     mIsAnaglyph (false),
@@ -370,7 +370,7 @@ void AnaglyphScreen::NUIListener::readyForNextData(nui::NUIPoints* pNUIPoints)
 			if (point.y < 0.0) point.y = 0.0;
 			if (point.y >= SCREEN_HEIGHT) point.y = SCREEN_HEIGHT - 1.0;
 			if (point.z < 0.0) point.z = 0.0;
-	
+
 			foreach (CompWindow *w, screen->compScreen->windows()) {
 				if (point.x >= w->x() && point.x < w->x() + w->width()
 				 && point.y >= w->y() && point.y < w->y() + w->height()) {
@@ -397,7 +397,7 @@ void AnaglyphScreen::NUIListener::readyForNextData(nui::NUIPoints* pNUIPoints)
 				avgy /= aw->ybuffer.size();
 
 				dx = aw->oldx == -1 ? 0 : avgx - aw->oldx;
-				dy = aw->oldy == -1 ? 0 : avgx - aw->oldy;
+				dy = aw->oldy == -1 ? 0 : avgy - aw->oldy;
 				aw->window->move(dx, dy, true);
 
 				aw->oldx = avgx;
