@@ -37,6 +37,7 @@ public:
 	virtual ~NUIListener() {}
 	void readyForNextData(nui::NUIPoints* pNUIPoints)
 	{
+		m_nuiPoints.clear();
 		int rc = pNUIPoints->getNextData(m_nuiPoints, m_frame);
 		m_ready = true;
 	}

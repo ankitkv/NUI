@@ -53,15 +53,15 @@ class AnaglyphScreen :
 		NUIListener(AnaglyphScreen *);
 		virtual ~NUIListener() {}
 		void readyForNextData(nui::NUIPoints *);
+		std::list<cv::Point3f> points;
 	} *myListener;
 
 	AnaglyphScreen (CompScreen *);
 	~AnaglyphScreen ();
 
-	CompScreen *compScreen;
 	CompositeScreen *cScreen;
 	GLScreen	*gScreen;
-	
+
 	bool		mIsAnaglyph;
 	bool		mIsDamage;
 	nui::NUIPoints *nuiPoints;
