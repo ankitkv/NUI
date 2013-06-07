@@ -202,7 +202,7 @@ Status NUIPoints::getNextData(std::list<cv::Point3f>& nuiPoints, VideoFrameRef& 
 	int width = rawFrame.getWidth();
 	int height = rawFrame.getHeight();
 
-	for (int x = 1; x < width - 1; ++x) {
+	for (int x = 1; x < width / 2.5; ++x) {
 		for (int y = 1; y < height - (height / 4.5); ++y)
 		{
 			if (pDepth[y * width + x] < FAR_LIMIT
