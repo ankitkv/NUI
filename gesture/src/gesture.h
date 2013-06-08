@@ -24,17 +24,16 @@
 
 #include "libnui.h"
 
-#include <core/screen.h>
-#include <core/pluginclasshandler.h>
+#include <core/core.h>
 #include <composite/composite.h>
 #include <opengl/opengl.h>
 
 #include "gesture_options.h"
 
 class GestureScreen :
+    public PluginClassHandler <GestureScreen, CompScreen>,
     public ScreenInterface,
     public CompositeScreenInterface,
-    public PluginClassHandler<GestureScreen,CompScreen>,
     public GestureOptions,
     public nui::NUIPoints::Listener
 {
@@ -54,48 +53,27 @@ class GestureScreen :
 	bool registerPaintHandler (compiz::composite::PaintHandler *pHnd);
 	void unregisterPaintHandler ();
 
-	Window     foundWindow;
-	CompWindow *w;
-	int        savedX;
-	int        savedY;
-	int        x;
-	int        y;
-	std::list<float> xbuffer;
-	std::list<float> ybuffer;
-
-	Region     region;
-	int        status;
-
-	CompScreen::GrabHandle grab;
-
-	Cursor moveCursor;
-
-	bool hasCompositing;
-
-	bool isNormalWindow(CompWindow *);
 	bool toggleGesture();
-	bool moveInitiate(CompOption::Vector &options);
-	bool moveTerminate();
-	void moveHandleMotionEvent(int xRoot, int yRoot);
 };
 
 class GestureWindow :
     public GLWindowInterface,
-    public PluginClassHandler<GestureWindow,CompWindow>
+    public CompositeWindowInterface,
+    public PluginClassHandler<GestureWindow, CompWindow>
 {
     public:
-	GestureWindow (CompWindow *window) :
-	    PluginClassHandler<GestureWindow,CompWindow> (window),
-	    window (window),
-	    gWindow (GLWindow::get (window)),
-	    cWindow (CompositeWindow::get (window))
-	{
-	    if (gWindow)
-		GLWindowInterface::setHandler (gWindow, false);
-	};
+	GestureWindow (CompWindow *window);
 
 	bool glPaint (const GLWindowPaintAttrib &, const GLMatrix &,
 		      const CompRegion &, unsigned int);
+
+	float        savedX;
+	float        savedY;
+	std::list<float> xbuffer;
+	std::list<float> ybuffer;
+
+	bool isNormalWindow();
+	bool released;
 
 	CompWindow      *window;
 	GLWindow        *gWindow;
@@ -103,10 +81,10 @@ class GestureWindow :
 };
 
 #define GESTURE_SCREEN(s) \
-    GestureScreen *ms = GestureScreen::get (s)
+    GestureScreen *gs = GestureScreen::get (s)
 
 #define GESTURE_WINDOW(w) \
-    GestureWindow *mw = GestureWindow::get (w)
+    GestureWindow *gw = GestureWindow::get (w)
 
 
 class GesturePluginVTable :
