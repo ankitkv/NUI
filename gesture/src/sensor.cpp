@@ -59,6 +59,19 @@ void GestureScreen::destroyNUIPoints()
 	}
 }
 
+bool GestureScreen::isNormalWindow(CompWindow *w)
+{
+	if (w->type () & (CompWindowTypeDesktopMask |
+	    CompWindowTypeDockMask                  |
+	    CompWindowTypeFullscreenMask))
+		return false;
+
+	if (w->overrideRedirect ())
+		return false;
+
+	return true;
+}
+
 bool GestureScreen::toggleGesture()
 {
 	if (nuiPoints)
@@ -99,6 +112,9 @@ void GestureScreen::readyForNextData(nui::NUIPoints *nuiPoints)
 				}
 			} else {
 				foreach (CompWindow *w, screen->windows()) {
+					if (!isNormalWindow(w))
+						continue;
+
 					if ((!foundWindow || (foundWindow == w->id())) && point.x >= w->geometry().x() && point.x < w->geometry().x() + w->size().width()
 					 && point.y >= w->geometry().y() && point.y < w->geometry().y() + w->size().height()) {
 

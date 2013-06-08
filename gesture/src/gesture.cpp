@@ -68,14 +68,6 @@ GestureScreen::moveInitiate(CompOption::Vector &options)
 	if (ms->w)
 	    return false;
 
-	if (w->type () & (CompWindowTypeDesktopMask |
-		       CompWindowTypeDockMask    |
-		       CompWindowTypeFullscreenMask))
-	    return false;
-
-	if (w->overrideRedirect ())
-	    return false;
-
 	if (ms->region)
 	{
 	    XDestroyRegion (ms->region);
@@ -103,13 +95,16 @@ GestureScreen::moveInitiate(CompOption::Vector &options)
 
 	if (ms->grab)
 	{
-	    unsigned int grabMask = CompWindowGrabMoveMask;
+	    unsigned int grabMask = CompWindowGrabMoveMask |
+				    CompWindowGrabButtonMask;
 
 		grabMask |= CompWindowGrabExternalAppMask;
 
 	    ms->w = w;
 
 	    w->grabNotify (x, y, 0, grabMask);
+
+		w->updateAttributes (CompStackingUpdateModeAboveFullscreen);
 	}
     }
 
@@ -238,7 +233,7 @@ moveGetYConstrainRegion (CompScreen *s)
 void
 GestureScreen::moveHandleMotionEvent(int xRoot, int yRoot)
 {
-    GESTURE_SCREEN(screen);
+    GESTURE_SCREEN (screen);
 
     if (ms->grab)
     {
@@ -269,10 +264,10 @@ GestureScreen::moveHandleMotionEvent(int xRoot, int yRoot)
 	    dx = ms->x;
 	    dy = ms->y;
 
-	    workArea = screen->getWorkareaForOutput(w->outputDevice ());
+	    workArea = screen->getWorkareaForOutput (w->outputDevice ());
 
 		if (!ms->region)
-		    ms->region = moveGetYConstrainRegion(screen);
+		    ms->region = moveGetYConstrainRegion (screen);
 
 		/* make sure that the top border extents or the top row of
 		   pixels are within what is currently our valid screen
@@ -341,8 +336,8 @@ GestureScreen::moveHandleMotionEvent(int xRoot, int yRoot)
 
 	    if (w->state () & CompWindowStateMaximizedHorzMask)
 	    {
-		if (wX > (int) screen->width() ||
-		    wX + w->size().width() < 0)
+		if (wX > (int) screen->width () ||
+		    wX + w->size ().width () < 0)
 		    return;
 
 		if (wX + wWidth < 0)

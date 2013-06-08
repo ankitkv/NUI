@@ -95,6 +95,7 @@ class GestureScreen :
 
 	bool hasCompositing;
 
+	bool isNormalWindow(CompWindow *);
 	bool toggleGesture();
 	bool moveInitiate(CompOption::Vector &options);
 	bool moveTerminate();
