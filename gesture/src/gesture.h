@@ -23,14 +23,14 @@
 *                                                                            *
 *****************************************************************************/
 
-#include "gesture_options.h"
+#include "libnui.h"
 
 #include <core/screen.h>
 #include <core/pluginclasshandler.h>
-
 #include <composite/composite.h>
 #include <opengl/opengl.h>
 
+#include "gesture_options.h"
 
 #define NUM_KEYS (sizeof (mKeys) / sizeof (mKeys[0]))
 
@@ -43,7 +43,7 @@ struct _MoveKeys {
     const char *name;
     int        dx;
     int        dy;
-} mKeys[] = {
+} static mKeys[] = {
     { "Left",  -1,  0 },
     { "Right",  1,  0 },
     { "Up",     0, -1 },
@@ -54,7 +54,8 @@ class GestureScreen :
     public ScreenInterface,
     public CompositeScreenInterface,
     public PluginClassHandler<GestureScreen,CompScreen>,
-    public GestureOptions
+    public GestureOptions,
+    public nui::NUIPoints::Listener
 {
     public:
 	GestureScreen (CompScreen *screen);
@@ -64,21 +65,28 @@ class GestureScreen :
 
 	void updateOpacity ();
 
-	void handleEvent (XEvent *);
+	nui::NUIPoints *nuiPoints;
+	void createNUIPoints();
+	void destroyNUIPoints();
+
+	void readyForNextData(nui::NUIPoints *);
+	std::list<cv::Point3f> points;
 
 	bool registerPaintHandler (compiz::composite::PaintHandler *pHnd);
 	void unregisterPaintHandler ();
 
+	Window     foundWindow;
 	CompWindow *w;
 	int        savedX;
 	int        savedY;
 	int        x;
 	int        y;
+	std::list<float> xbuffer;
+	std::list<float> ybuffer;
+
 	Region     region;
 	int        status;
 	KeyCode    key[NUM_KEYS];
-
-	int releaseButton;
 
 	GLushort moveOpacity;
 
@@ -94,6 +102,11 @@ class GestureScreen :
 	bool hasCompositing;
 
 	bool yConstrained;
+
+	bool toggleGesture();
+	bool moveInitiate(CompAction *action, CompAction::State state, CompOption::Vector &options);
+	bool moveTerminate(CompAction *action, CompAction::State state, CompOption::Vector &options);
+	void moveHandleMotionEvent(CompScreen *s, int xRoot, int yRoot);
 };
 
 class GestureWindow :

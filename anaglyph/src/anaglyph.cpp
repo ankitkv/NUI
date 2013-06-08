@@ -302,6 +302,6 @@ AnaglyphPluginVTable::init ()
 	!CompPlugin::checkPluginABI ("composite", COMPIZ_COMPOSITE_ABI) ||
 	!CompPlugin::checkPluginABI ("opengl", COMPIZ_OPENGL_ABI))
 	return false;
-    
+
     return true;
 }

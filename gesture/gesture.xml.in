@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <compiz>
     <plugin name="gesture" useBcop="true">
 	<_short>3D Gestures</_short>
@@ -11,6 +12,11 @@
 	    </relation>
 	</deps>
 	<options>
+		<option name="screen_toggle_key" type="key">
+		<_short>Initiate Screen</_short>
+		<_long>Start gesture system</_long>
+		<default>&lt;Shift&gt;&lt;Alt&gt;g</default>
+		</option>
 	    <option name="initiate_button" type="button">
 		<_short>Initiate Window Move</_short>
 		<_long>Start moving window</_long>

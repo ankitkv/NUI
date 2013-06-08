@@ -23,14 +23,14 @@
 *                                                                            *
 *****************************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "gesture.h"
 
 #include <X11/cursorfont.h>
-
 #include <core/atoms.h>
-#include "gesture.h"
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 COMPIZ_PLUGIN_20090315 (gesture, GesturePluginVTable)
 
@@ -39,8 +39,8 @@ const unsigned short KEY_MOVE_INC = 24;
 const unsigned short SNAP_BACK = 20;
 const unsigned short SNAP_OFF  = 100;
 
-static bool
-moveInitiate (CompAction      *action,
+bool
+GestureScreen::moveInitiate (CompAction      *action,
 	      CompAction::State state,
 	      CompOption::Vector &options)
 {
@@ -55,20 +55,15 @@ moveInitiate (CompAction      *action,
     if (w && (w->actions () & CompWindowActionMoveMask))
     {
 	CompRect     workArea;
-	unsigned int mods;
-	int          x, y, button;
+	int          x, y;
 	bool         sourceExternalApp;
 
 	CompScreen *s = screen;
-
-	mods = CompOption::getIntOptionNamed (options, "modifiers", 0);
 
 	x = CompOption::getIntOptionNamed (options, "x", w->geometry ().x () +
 					   (w->size ().width () / 2));
 	y = CompOption::getIntOptionNamed (options, "y", w->geometry ().y () +
 					   (w->size ().height () / 2));
-
-	button = CompOption::getIntOptionNamed (options, "button", -1);
 
 	if (s->otherGrabExist ("gesture", NULL))
 	    return false;
@@ -120,24 +115,14 @@ moveInitiate (CompAction      *action,
 
 	if (ms->grab)
 	{
-	    unsigned int grabMask = CompWindowGrabMoveMask |
-				    CompWindowGrabButtonMask;
+	    unsigned int grabMask = CompWindowGrabMoveMask;
 
 	    if (sourceExternalApp)
 		grabMask |= CompWindowGrabExternalAppMask;
 
 	    ms->w = w;
 
-	    ms->releaseButton = button;
-
-	    w->grabNotify (x, y, mods, grabMask);
-
-	    /* Click raise happens implicitly on buttons 1, 2 and 3 so don't
-	     * restack this window again if the action buttonbinding was from
-	     * one of those buttons */
-	    if (screen->getOption ("raise_on_click")->value ().b () &&
-		button != Button1 && button != Button2 && button != Button3)
-		w->updateAttributes (CompStackingUpdateModeAboveFullscreen);
+	    w->grabNotify (x, y, 0, grabMask);
 
 	    if (state & CompAction::StateInitKey)
 	    {
@@ -164,8 +149,8 @@ moveInitiate (CompAction      *action,
     return false;
 }
 
-static bool
-moveTerminate (CompAction      *action,
+bool
+GestureScreen::moveTerminate (CompAction      *action,
 	       CompAction::State state,
 	       CompOption::Vector &options)
 {
@@ -203,7 +188,6 @@ moveTerminate (CompAction      *action,
 	}
 
 	ms->w             = 0;
-	ms->releaseButton = 0;
     }
 
     action->setState (action->state () & ~(CompAction::StateTermKey |
@@ -303,8 +287,8 @@ moveGetYConstrainRegion (CompScreen *s)
     return region;
 }
 
-static void
-moveHandleMotionEvent (CompScreen *s,
+void
+GestureScreen::moveHandleMotionEvent (CompScreen *s,
 		       int	  xRoot,
 		       int	  yRoot)
 {
@@ -499,144 +483,6 @@ moveHandleMotionEvent (CompScreen *s,
     }
 }
 
-void
-GestureScreen::handleEvent (XEvent *event)
-{
-    switch (event->type) {
-	case ButtonPress:
-	case ButtonRelease:
-	    if (event->xbutton.root == screen->root ())
-	    {
-		if (grab)
-		{
-		    if (releaseButton == -1 ||
-			releaseButton == (int) event->xbutton.button)
-		    {
-			moveTerminate (&optionGetInitiateButton (),
-				       CompAction::StateTermButton,
-				       noOptions ());
-		    }
-		}
-	    }
-	    break;
-	case KeyPress:
-	    if (event->xkey.root == screen->root ())
-	    {
-		if (grab)
-		{
-		    unsigned int i;
-
-		    for (i = 0; i < NUM_KEYS; i++)
-		    {
-			if (event->xkey.keycode == key[i])
-			{
-			    XWarpPointer (screen->dpy (), None, None,
-					  0, 0, 0, 0,
-					  mKeys[i].dx * KEY_MOVE_INC,
-					  mKeys[i].dy * KEY_MOVE_INC);
-			    break;
-			}
-		    }
-		}
-	    }
-	    break;
-	case MotionNotify:
-	    if (event->xmotion.root == screen->root ())
-		moveHandleMotionEvent (screen, pointerX, pointerY);
-	    break;
-	case EnterNotify:
-	case LeaveNotify:
-	    if (event->xcrossing.root == screen->root ())
-		moveHandleMotionEvent (screen, pointerX, pointerY);
-	    break;
-	case ClientMessage:
-	    if (event->xclient.message_type == Atoms::wmMoveResize)
-	    {
-		CompWindow *w;
-		unsigned   long type = (unsigned long) event->xclient.data.l[2];
-
-		GESTURE_SCREEN (screen);
-
-		if (type == WmMoveResizeMove ||
-		    type == WmMoveResizeMoveKeyboard)
-		{
-		    w = screen->findWindow (event->xclient.window);
-		    if (w)
-		    {
-			CompOption::Vector o;
-
-			o.push_back (CompOption ("window", CompOption::TypeInt));
-			o[0].value ().set ((int) event->xclient.window);
-
-			o.push_back (CompOption ("external",
-				     CompOption::TypeBool));
-			o[1].value ().set (true);
-
-			if (event->xclient.data.l[2] == WmMoveResizeMoveKeyboard)
-			{
-			    moveInitiate (&optionGetInitiateKey (),
-					  CompAction::StateInitKey, o);
-			}
-			else
-			{
-
-			    /* TODO: not only button 1 */
-			    if (pointerMods & Button1Mask)
-			    {
-				o.push_back (CompOption ("modifiers", CompOption::TypeInt));
-				o[2].value ().set ((int) pointerMods);
-
-				o.push_back (CompOption ("x", CompOption::TypeInt));
-				o[3].value ().set ((int) event->xclient.data.l[0]);
-
-				o.push_back (CompOption ("y", CompOption::TypeInt));
-				o[4].value ().set ((int) event->xclient.data.l[1]);
-
-				o.push_back (CompOption ("button", CompOption::TypeInt));
-				o[5].value ().set ((int) (event->xclient.data.l[3] ?
-					       event->xclient.data.l[3] : -1));
-
-				moveInitiate (&optionGetInitiateButton (),
-					      CompAction::StateInitButton, o);
-
-				moveHandleMotionEvent (screen, pointerX, pointerY);
-			    }
-			}
-		    }
-		}
-		else if (ms->w && type == WmMoveResizeCancel)
-		{
-		    if (ms->w->id () == event->xclient.window)
-		    {
-			moveTerminate (&optionGetInitiateButton (),
-				       CompAction::StateCancel, noOptions ());
-			moveTerminate (&optionGetInitiateKey (),
-				       CompAction::StateCancel, noOptions ());
-
-		    }
-		}
-	    }
-	    break;
-	case DestroyNotify:
-	    if (w && w->id () == event->xdestroywindow.window)
-	    {
-		moveTerminate (&optionGetInitiateButton (), 0, noOptions ());
-		moveTerminate (&optionGetInitiateKey (), 0, noOptions ());
-	    }
-	    break;
-	case UnmapNotify:
-	    if (w && w->id () == event->xunmap.window)
-	    {
-		moveTerminate (&optionGetInitiateButton (), 0, noOptions ());
-		moveTerminate (&optionGetInitiateKey (), 0, noOptions ());
-	    }
-	default:
-	    break;
-    }
-
-    screen->handleEvent (event);
-}
-
 bool
 GestureWindow::glPaint (const GLWindowPaintAttrib &attrib,
 		     const GLMatrix            &transform,
@@ -686,10 +532,10 @@ GestureScreen::unregisterPaintHandler()
 GestureScreen::GestureScreen (CompScreen *screen) :
     PluginClassHandler<GestureScreen,CompScreen> (screen),
     cScreen (CompositeScreen::get (screen)),
-    w (0),
+    foundWindow(0),
+    w(0),
     region (NULL),
     status (RectangleOut),
-    releaseButton (0),
     grab (NULL),
     hasCompositing (false),
     yConstrained (false)
@@ -709,18 +555,15 @@ GestureScreen::GestureScreen (CompScreen *screen) :
     }
 
     optionSetOpacityNotify (boost::bind (&GestureScreen::updateOpacity, this));
-
-    optionSetInitiateButtonInitiate (moveInitiate);
-    optionSetInitiateButtonTerminate (moveTerminate);
-
-    optionSetInitiateKeyInitiate (moveInitiate);
-    optionSetInitiateKeyTerminate (moveTerminate);
-
     ScreenInterface::setHandler (screen);
+
+	optionSetScreenToggleKeyInitiate (boost::bind (&GestureScreen::toggleGesture, this));
 }
 
 GestureScreen::~GestureScreen ()
 {
+	destroyNUIPoints();
+
     if (region)
 	XDestroyRegion (region);
 
@@ -732,7 +575,7 @@ bool
 GesturePluginVTable::init ()
 {
     if (!CompPlugin::checkPluginABI ("core", CORE_ABIVERSION))
-	 return false;
+		return false;
 
     return true;
 }

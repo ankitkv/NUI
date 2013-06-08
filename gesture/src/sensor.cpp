@@ -25,4 +25,129 @@
 
 #include "gesture.h"
 
+#include <pwd.h>
+
+void GestureScreen::createNUIPoints()
+{
+	if (!nuiPoints) {
+		nuiPoints = new nui::NUIPoints();
+		if (!nuiPoints->isValid()) {
+			delete nuiPoints;
+			nuiPoints = NULL;
+		} else {
+			nuiPoints->setListener(*this);
+
+			passwd *pw = getpwuid(getuid());
+			cv::FileStorage ifs(std::string(pw->pw_dir) + "/.nuicalib.xml", cv::FileStorage::READ);
+			if (ifs.isOpened()) {
+				cv::Mat rotateMatrix, calibMatrix;
+				ifs["rotation"] >> rotateMatrix;
+				ifs["calibration"] >> calibMatrix;
+				ifs.release();
+				nuiPoints->getCalibrationMgr()->calibrate(rotateMatrix, calibMatrix);
+			}
+		}
+	}
+}
+
+void GestureScreen::destroyNUIPoints()
+{
+   	if (nuiPoints) {
+		nuiPoints->resetListener();
+		delete nuiPoints;
+		nuiPoints = NULL;
+	}
+}
+
+bool GestureScreen::toggleGesture()
+{
+	if (nuiPoints)
+		destroyNUIPoints();
+	else
+		createNUIPoints();
+	return true;
+}
+
+void GestureScreen::readyForNextData(nui::NUIPoints *nuiPoints)
+{
+	if (!nuiPoints->getCalibrationMgr()->isCalibrated())
+		return;
+
+	openni::VideoFrameRef frame;
+
+	if (nuiPoints->getNextData(points, frame) == openni::STATUS_OK) {
+
+		GESTURE_SCREEN(screen);
+
+		for (std::list<cv::Point3f>::iterator i = points.begin(); i != points.end(); ++i) {
+			cv::Point3f point = nuiPoints->getCalibrationMgr()->getCalibratedPoint(*i);
+			if (point.x < 0.0) point.x = 0.0;
+			if (point.x >= SCREEN_WIDTH) point.x = SCREEN_WIDTH - 1.0;
+			if (point.y < 0.0) point.y = 0.0;
+			if (point.y >= SCREEN_HEIGHT) point.y = SCREEN_HEIGHT - 1.0;
+			if (point.z < 0.0) point.z = 0.0;
+
+			if (ms->grab) {
+				foundWindow = 0;
+				if (point.x >= ms->w->geometry().x() && point.x < ms->w->geometry().x() + ms->w->size().width()
+				 && point.y >= ms->w->geometry().y() && point.y < ms->w->geometry().y() + ms->w->size().height()) {
+
+					if (point.z < 25) {
+						xbuffer.push_back(point.x);
+						ybuffer.push_back(point.y);
+					}
+				}
+			} else {
+				foreach (CompWindow *w, screen->windows()) {
+					if ((!foundWindow || (foundWindow == w->id())) && point.x >= w->geometry().x() && point.x < w->geometry().x() + w->size().width()
+					 && point.y >= w->geometry().y() && point.y < w->geometry().y() + w->size().height()) {
+
+						if (point.z < 25) {
+							foundWindow = w->id();
+							xbuffer.push_back(point.x);
+							ybuffer.push_back(point.y);
+						}
+					}
+				}
+			}
+		}
+
+		if (!xbuffer.empty()) {
+			float avgx = 0, avgy = 0;
+			for (std::list<float>::iterator i = ms->xbuffer.begin(); i != ms->xbuffer.end(); ++i)
+				avgx += *i;
+			for (std::list<float>::iterator i = ms->ybuffer.begin(); i != ms->ybuffer.end(); ++i)
+				avgy += *i;
+			avgx /= ms->xbuffer.size();
+			avgy /= ms->ybuffer.size();
+
+			if (!ms->grab) {
+				CompOption::Vector o;
+
+				o.push_back (CompOption ("window", CompOption::TypeInt));
+				o[0].value ().set ((int) foundWindow);
+
+				o.push_back (CompOption ("external", CompOption::TypeBool));
+				o[1].value ().set (true);
+
+				o.push_back (CompOption ("x", CompOption::TypeInt));
+				o[2].value ().set ((int) avgx);
+
+				o.push_back (CompOption ("y", CompOption::TypeInt));
+				o[3].value ().set ((int) avgy);
+
+				moveInitiate (&optionGetInitiateButton(),
+						  CompAction::StateInitButton, o);
+			}
+
+			moveHandleMotionEvent (screen, (int) avgx, (int) avgy);
+			ms->xbuffer.clear();
+			ms->ybuffer.clear();
+		} else if (ms->grab) {
+			moveTerminate (&optionGetInitiateButton(), 0, noOptions());
+		}
+
+		points.clear();
+	}
+}
 
