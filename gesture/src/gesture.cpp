@@ -40,9 +40,7 @@ const unsigned short SNAP_BACK = 20;
 const unsigned short SNAP_OFF  = 100;
 
 bool
-GestureScreen::moveInitiate (CompAction      *action,
-	      CompAction::State state,
-	      CompOption::Vector &options)
+GestureScreen::moveInitiate(CompOption::Vector &options)
 {
     CompWindow *w;
     Window     xid;
@@ -56,7 +54,6 @@ GestureScreen::moveInitiate (CompAction      *action,
     {
 	CompRect     workArea;
 	int          x, y;
-	bool         sourceExternalApp;
 
 	CompScreen *s = screen;
 
@@ -79,9 +76,6 @@ GestureScreen::moveInitiate (CompAction      *action,
 	if (w->overrideRedirect ())
 	    return false;
 
-	if (state & CompAction::StateInitButton)
-	    action->setState (action->state () | CompAction::StateTermButton);
-
 	if (ms->region)
 	{
 	    XDestroyRegion (ms->region);
@@ -99,12 +93,6 @@ GestureScreen::moveInitiate (CompAction      *action,
 	lastPointerX = x;
 	lastPointerY = y;
 
-	sourceExternalApp =
-	    CompOption::getBoolOptionNamed (options, "external", false);
-	ms->yConstrained = sourceExternalApp && ms->optionGetConstrainY ();
-
-	ms->origState = w->state ();
-
 	workArea = s->getWorkareaForOutput (w->outputDevice ());
 
 	ms->snapBackY = w->serverGeometry ().y () - workArea.y ();
@@ -117,32 +105,11 @@ GestureScreen::moveInitiate (CompAction      *action,
 	{
 	    unsigned int grabMask = CompWindowGrabMoveMask;
 
-	    if (sourceExternalApp)
 		grabMask |= CompWindowGrabExternalAppMask;
 
 	    ms->w = w;
 
 	    w->grabNotify (x, y, 0, grabMask);
-
-	    if (state & CompAction::StateInitKey)
-	    {
-		int xRoot, yRoot;
-
-		xRoot = w->geometry ().x () + (w->size ().width () / 2);
-		yRoot = w->geometry ().y () + (w->size ().height () / 2);
-
-		s->warpPointer (xRoot - pointerX, yRoot - pointerY);
-	    }
-
-	    if (ms->moveOpacity != OPAQUE)
-	    {
-		GESTURE_WINDOW (w);
-
-		if (mw->cWindow)
-		    mw->cWindow->addDamage ();
-		if (mw->gWindow)
-		mw->gWindow->glPaintSetEnabled (mw, true);
-	    }
 	}
     }
 
@@ -150,18 +117,12 @@ GestureScreen::moveInitiate (CompAction      *action,
 }
 
 bool
-GestureScreen::moveTerminate (CompAction      *action,
-	       CompAction::State state,
-	       CompOption::Vector &options)
+GestureScreen::moveTerminate()
 {
     GESTURE_SCREEN (screen);
 
     if (ms->w)
     {
-	if (state & CompAction::StateCancel)
-	    ms->w->move (ms->savedX - ms->w->geometry ().x (),
-			 ms->savedY - ms->w->geometry ().y (), false);
-
 	ms->w->syncPosition ();
 
 	/* update window attributes as window constraints may have
@@ -177,21 +138,8 @@ GestureScreen::moveTerminate (CompAction      *action,
 	    ms->grab = NULL;
 	}
 
-	if (ms->moveOpacity != OPAQUE)
-	{
-	    GESTURE_WINDOW (ms->w);
-
-	    if (mw->cWindow)
-		mw->cWindow->addDamage ();
-	    if (mw->gWindow)
-		mw->gWindow->glPaintSetEnabled (mw, false);
-	}
-
 	ms->w             = 0;
     }
-
-    action->setState (action->state () & ~(CompAction::StateTermKey |
-					   CompAction::StateTermButton));
 
     return false;
 }
@@ -288,11 +236,9 @@ moveGetYConstrainRegion (CompScreen *s)
 }
 
 void
-GestureScreen::moveHandleMotionEvent (CompScreen *s,
-		       int	  xRoot,
-		       int	  yRoot)
+GestureScreen::moveHandleMotionEvent(int xRoot, int yRoot)
 {
-    GESTURE_SCREEN (s);
+    GESTURE_SCREEN(screen);
 
     if (ms->grab)
     {
@@ -323,12 +269,10 @@ GestureScreen::moveHandleMotionEvent (CompScreen *s,
 	    dx = ms->x;
 	    dy = ms->y;
 
-	    workArea = s->getWorkareaForOutput (w->outputDevice ());
+	    workArea = screen->getWorkareaForOutput(w->outputDevice ());
 
-	    if (ms->yConstrained)
-	    {
 		if (!ms->region)
-		    ms->region = moveGetYConstrainRegion (s);
+		    ms->region = moveGetYConstrainRegion(screen);
 
 		/* make sure that the top border extents or the top row of
 		   pixels are within what is currently our valid screen
@@ -383,61 +327,6 @@ GestureScreen::moveHandleMotionEvent (CompScreen *s,
 			ms->status = status;
 		    }
 		}
-	    }
-
-	    if (ms->optionGetSnapoffMaximized ())
-	    {
-		if (w->state () & CompWindowStateMaximizedVertMask)
-		{
-		    if (abs (yRoot - workArea.y () - ms->snapOffY) >= SNAP_OFF)
-		    {
-			if (!s->otherGrabExist ("gesture", NULL))
-			{
-			    int width = w->serverGeometry ().width ();
-
-			    w->saveMask () |= CWX | CWY;
-
-			    if (w->saveMask ()& CWWidth)
-				width = w->saveWc ().width;
-
-			    w->saveWc ().x = xRoot - (width >> 1);
-			    w->saveWc ().y = yRoot + (w->border ().top >> 1);
-
-			    ms->x = ms->y = 0;
-
-			    w->maximize (0);
-
-			    ms->snapOffY = ms->snapBackY;
-
-			    return;
-			}
-		    }
-		}
-		else if (ms->origState & CompWindowStateMaximizedVertMask)
-		{
-		    if (abs (yRoot - workArea.y () - ms->snapBackY) < SNAP_BACK)
-		    {
-			if (!s->otherGrabExist ("gesture", NULL))
-			{
-			    int wy;
-
-			    /* update server position before maximizing
-			       window again so that it is maximized on
-			       correct output */
-			    w->syncPosition ();
-
-			    w->maximize (ms->origState);
-
-			    wy  = workArea.y () + (w->border ().top >> 1);
-			    wy += w->sizeHints ().height_inc >> 1;
-
-			    s->warpPointer (0, wy - pointerY);
-
-			    return;
-			}
-		    }
-		}
-	    }
 
 	    if (w->state () & CompWindowStateMaximizedVertMask)
 	    {
@@ -452,8 +341,8 @@ GestureScreen::moveHandleMotionEvent (CompScreen *s,
 
 	    if (w->state () & CompWindowStateMaximizedHorzMask)
 	    {
-		if (wX > (int) s->width () ||
-		    wX + w->size ().width () < 0)
+		if (wX > (int) screen->width() ||
+		    wX + w->size().width() < 0)
 		    return;
 
 		if (wX + wWidth < 0)
@@ -474,9 +363,6 @@ GestureScreen::moveHandleMotionEvent (CompScreen *s,
 	    w->move (wX + dx - w->geometry ().x (),
 		     wY + dy - w->geometry ().y (), false);
 
-	    if (!ms->optionGetLazyPositioning ())
-		w->syncPosition ();
-
 	    ms->x -= dx;
 	    ms->y -= dy;
 	}
@@ -494,24 +380,9 @@ GestureWindow::glPaint (const GLWindowPaintAttrib &attrib,
 
     GESTURE_SCREEN (screen);
 
-    if (ms->grab)
-    {
-	if (ms->w == window && ms->moveOpacity != OPAQUE)
-	{
-	    /* modify opacity of windows that are not active */
-	    sAttrib.opacity = (sAttrib.opacity * ms->moveOpacity) >> 16;
-	}
-    }
-
     status = gWindow->glPaint (sAttrib, transform, region, mask);
 
     return status;
-}
-
-void
-GestureScreen::updateOpacity ()
-{
-    moveOpacity = (optionGetOpacity () * OPAQUE) / 100;
 }
 
 bool
@@ -532,16 +403,14 @@ GestureScreen::unregisterPaintHandler()
 GestureScreen::GestureScreen (CompScreen *screen) :
     PluginClassHandler<GestureScreen,CompScreen> (screen),
     cScreen (CompositeScreen::get (screen)),
+    nuiPoints(NULL),
     foundWindow(0),
     w(0),
     region (NULL),
     status (RectangleOut),
     grab (NULL),
-    hasCompositing (false),
-    yConstrained (false)
+    hasCompositing (false)
 {
-    updateOpacity ();
-
     for (unsigned int i = 0; i < NUM_KEYS; i++)
 	key[i] = XKeysymToKeycode (screen->dpy (),
 				   XStringToKeysym (mKeys[i].name));
@@ -554,7 +423,6 @@ GestureScreen::GestureScreen (CompScreen *screen) :
 	    cScreen->compositingActive ();
     }
 
-    optionSetOpacityNotify (boost::bind (&GestureScreen::updateOpacity, this));
     ScreenInterface::setHandler (screen);
 
 	optionSetScreenToggleKeyInitiate (boost::bind (&GestureScreen::toggleGesture, this));

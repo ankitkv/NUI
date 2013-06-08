@@ -93,6 +93,8 @@ private:
 
 	Display *m_xDisplay;
 	Window m_xScreenRoot;
+	int s_width;
+	int s_height;
 
 	nui::NUIPoints* m_pNUIPoints;
 	NUIListener* m_pNUIPointsListener;

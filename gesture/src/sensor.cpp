@@ -30,7 +30,7 @@
 void GestureScreen::createNUIPoints()
 {
 	if (!nuiPoints) {
-		nuiPoints = new nui::NUIPoints();
+		nuiPoints = new nui::NUIPoints(screen->width(), screen->height());
 		if (!nuiPoints->isValid()) {
 			delete nuiPoints;
 			nuiPoints = NULL;
@@ -82,9 +82,9 @@ void GestureScreen::readyForNextData(nui::NUIPoints *nuiPoints)
 		for (std::list<cv::Point3f>::iterator i = points.begin(); i != points.end(); ++i) {
 			cv::Point3f point = nuiPoints->getCalibrationMgr()->getCalibratedPoint(*i);
 			if (point.x < 0.0) point.x = 0.0;
-			if (point.x >= SCREEN_WIDTH) point.x = SCREEN_WIDTH - 1.0;
+			if (point.x >= screen->width()) point.x = screen->width() - 1.0;
 			if (point.y < 0.0) point.y = 0.0;
-			if (point.y >= SCREEN_HEIGHT) point.y = SCREEN_HEIGHT - 1.0;
+			if (point.y >= screen->height()) point.y = screen->height() - 1.0;
 			if (point.z < 0.0) point.z = 0.0;
 
 			if (ms->grab) {
@@ -127,24 +127,20 @@ void GestureScreen::readyForNextData(nui::NUIPoints *nuiPoints)
 				o.push_back (CompOption ("window", CompOption::TypeInt));
 				o[0].value ().set ((int) foundWindow);
 
-				o.push_back (CompOption ("external", CompOption::TypeBool));
-				o[1].value ().set (true);
-
 				o.push_back (CompOption ("x", CompOption::TypeInt));
-				o[2].value ().set ((int) avgx);
+				o[1].value ().set ((int) avgx);
 
 				o.push_back (CompOption ("y", CompOption::TypeInt));
-				o[3].value ().set ((int) avgy);
+				o[2].value ().set ((int) avgy);
 
-				moveInitiate (&optionGetInitiateButton(),
-						  CompAction::StateInitButton, o);
+				moveInitiate(o);
 			}
 
-			moveHandleMotionEvent (screen, (int) avgx, (int) avgy);
+			moveHandleMotionEvent((int) avgx, (int) avgy);
 			ms->xbuffer.clear();
 			ms->ybuffer.clear();
 		} else if (ms->grab) {
-			moveTerminate (&optionGetInitiateButton(), 0, noOptions());
+			moveTerminate();
 		}
 
 		points.clear();

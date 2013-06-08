@@ -29,8 +29,6 @@
 
 #define FAR_LIMIT 1000
 #define SCREEN_AREA 35
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1080
 #define DEPTH_TRESHOLD 50
 
 namespace nui
@@ -47,7 +45,7 @@ public:
 		virtual void readyForNextData(NUIPoints*) = 0;
 	};
 
-	NUIPoints(const char* uri = NULL);
+	NUIPoints(int width, int height);
 	NUIPoints(openni::Device* pDevice);
 	~NUIPoints();
 
@@ -66,6 +64,8 @@ private:
 
 	NUIPointsInternal* m_pInternal;
 	CalibrationMgr *m_pCalibrationMgr;
+	int s_width;
+	int s_height;
 };
 
 }

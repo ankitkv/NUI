@@ -63,8 +63,6 @@ class GestureScreen :
 
 	CompositeScreen *cScreen;
 
-	void updateOpacity ();
-
 	nui::NUIPoints *nuiPoints;
 	void createNUIPoints();
 	void destroyNUIPoints();
@@ -88,25 +86,19 @@ class GestureScreen :
 	int        status;
 	KeyCode    key[NUM_KEYS];
 
-	GLushort moveOpacity;
-
 	CompScreen::GrabHandle grab;
 
 	Cursor moveCursor;
-
-	unsigned int origState;
 
 	int	snapOffY;
 	int	snapBackY;
 
 	bool hasCompositing;
 
-	bool yConstrained;
-
 	bool toggleGesture();
-	bool moveInitiate(CompAction *action, CompAction::State state, CompOption::Vector &options);
-	bool moveTerminate(CompAction *action, CompAction::State state, CompOption::Vector &options);
-	void moveHandleMotionEvent(CompScreen *s, int xRoot, int yRoot);
+	bool moveInitiate(CompOption::Vector &options);
+	bool moveTerminate();
+	void moveHandleMotionEvent(int xRoot, int yRoot);
 };
 
 class GestureWindow :

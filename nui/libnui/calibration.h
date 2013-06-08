@@ -37,8 +37,11 @@ class ONI_API_EXPORT CalibrationMgr
 	cv::Mat *m_pCalibMatrix;
 	cv::Mat m_pRotateMatrix;
 
+	int s_width;
+	int s_height;
+
 public:
-	CalibrationMgr(openni::VideoStream *);
+	CalibrationMgr(openni::VideoStream *, int, int);
 	~CalibrationMgr();
 
 	void calibrate(const cv::Point3f& nuiPoint, int X, int Y);

@@ -25,7 +25,11 @@
 namespace nui
 {
 
-CalibrationMgr::CalibrationMgr(openni::VideoStream *stream) : m_pVideoStream(stream), m_pCalibMatrix(NULL)
+CalibrationMgr::CalibrationMgr(openni::VideoStream *stream, int width, int height) :
+	m_pVideoStream(stream),
+	m_pCalibMatrix(NULL),
+	s_width(width),
+	s_height(height)
 {
 	uncalibrate();
 }
@@ -85,7 +89,7 @@ void CalibrationMgr::calibrate(const cv::Point3f& nuiPoint, int X, int Y)
 	dest.clear();
 	for (int i = 0; i < 2; ++i) {
 		for (int j = 0; j < 2; ++j)
-			dest.push_back(cv::Point2f(j * SCREEN_WIDTH, i * SCREEN_HEIGHT));
+			dest.push_back(cv::Point2f(j * s_width, i * s_height));
 	}
 
 	*m_pCalibMatrix = cv::findHomography(src, dest, CV_RANSAC);

@@ -61,7 +61,11 @@ NUICalib::NUICalib(const char* strNUIName, const char* deviceUri, bool debug) :
 	ms_self = this;
 	strncpy(m_strNUIName, strNUIName, ONI_MAX_STR);
 
-	m_pNUIPoints = new nui::NUIPoints(deviceUri);
+	m_xDisplay = XOpenDisplay(NULL);
+	Screen *s = DefaultScreenOfDisplay(m_xDisplay);
+	s_width = WidthOfScreen(s);
+	s_height = HeightOfScreen(s);
+	m_pNUIPoints = new nui::NUIPoints(s_width, s_height);
 }
 NUICalib::~NUICalib()
 {
@@ -99,7 +103,6 @@ int NUICalib::init(int argc, char **argv)
 	m_pNUIPointsListener = new NUIListener;
 	m_pNUIPoints->setListener(*m_pNUIPointsListener);
 
-	m_xDisplay = XOpenDisplay(NULL);
 	m_xScreenRoot = RootWindow(m_xDisplay, 0);
 
 	passwd *pw = getpwuid(getuid());
@@ -248,9 +251,9 @@ void NUICalib::doMouseMove(const cv::Point3f& nuiPoint)
 
 	cv::Point3f point = m_pNUIPoints->getCalibrationMgr()->getCalibratedPoint(nuiPoint);
 	if (point.x < 0.0) point.x = 0.0;
-	if (point.x >= SCREEN_WIDTH) point.x = SCREEN_WIDTH - 1.0;
+	if (point.x >= s_width) point.x = s_width - 1.0;
 	if (point.y < 0.0) point.y = 0.0;
-	if (point.y >= SCREEN_HEIGHT) point.y = SCREEN_HEIGHT - 1.0;
+	if (point.y >= s_height) point.y = s_height - 1.0;
 	if (point.z < 0.0) point.z = 0.0;
 	printf("point: (%f, %f)\tAbove screen: %f\n", point.x, point.y, point.z);
 

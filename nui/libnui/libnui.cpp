@@ -68,7 +68,10 @@ private:
 	NUIPointsInternal* m_pNUIPoints;
 };
 
-NUIPoints::NUIPoints(const char* uri) : m_pCalibrationMgr(NULL)
+NUIPoints::NUIPoints(int width, int height) :
+	m_pCalibrationMgr(NULL),
+	s_width(width),
+	s_height(height)
 {
 	m_pInternal = new NUIPointsInternal(this);
 
@@ -76,7 +79,7 @@ NUIPoints::NUIPoints(const char* uri) : m_pCalibrationMgr(NULL)
 	m_pInternal->m_oniOwner = true;
 
 	OpenNI::initialize();
-	Status rc = m_pInternal->m_pDevice->open(uri);
+	Status rc = m_pInternal->m_pDevice->open(openni::ANY_DEVICE);
 	if (rc != STATUS_OK)
 	{
 		printf("Open device failed:\n%s\n", OpenNI::getExtendedError());
@@ -122,7 +125,7 @@ void NUIPoints::initialize()
 	}
 
 	m_pInternal->m_pDepthStream->addNewFrameListener(m_pInternal->m_pStreamListener);
-	m_pCalibrationMgr = new CalibrationMgr(getStream());
+	m_pCalibrationMgr = new CalibrationMgr(getStream(), s_width, s_height);
 }
 
 NUIPoints::~NUIPoints()
