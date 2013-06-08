@@ -201,7 +201,8 @@ bool GestureScreen::glPaintOutput (const GLScreenPaintAttrib &attrib,
 
 				if (point.x >= w->geometry().x() && point.x < w->geometry().x() + w->size().width()) {
 					if (point.x >= w->geometry().x() && point.x < w->geometry().x() + w->size().width()
-						&& point.y >= w->geometry().y() && point.y < w->geometry().y() + w->size().height()) {
+						&& point.y >= w->geometry().y() && point.y < w->geometry().y() + w->size().height()
+						&& ((gw->window->id() == screen->activeWindow() && point.z < 25) || point.z < 10)) {
 							gw->xbuffer[2].push_back(point.x);
 							gw->ybuffer[2].push_back(point.y);
 					}
