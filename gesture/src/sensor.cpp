@@ -107,25 +107,38 @@ bool GestureWindow::glPaint (const GLWindowPaintAttrib &attrib,
 
 	gWindow->glPaintSetEnabled (this, false);
 
-	if (!xbuffer.empty()) {
-		float avgx = 0, avgy = 0;
-		for (std::list<float>::iterator i = xbuffer.begin(); i != xbuffer.end(); ++i)
-			avgx += *i;
-		avgx /= xbuffer.size();
-		xbuffer.clear();
+	if (!xbuffer[0].empty() || !xbuffer[1].empty()) {
+		if (!xbuffer[0].empty() && !xbuffer[1].empty()) {
+			float avgx[2] = {0, 0}, avgy[2] = {0, 0};
+			for (int index = 0; index < 2; ++index) {
+				for (std::list<float>::iterator i = xbuffer[index].begin(); i != xbuffer[index].end(); ++i)
+					avgx[index] += *i;
+				avgx[index] /= xbuffer[index].size();
 
-		for (std::list<float>::iterator i = ybuffer.begin(); i != ybuffer.end(); ++i)
-			avgy += *i;
-		avgy /= ybuffer.size();
-		ybuffer.clear();
+				for (std::list<float>::iterator i = ybuffer[index].begin(); i != ybuffer[index].end(); ++i)
+					avgy[index] += *i;
+				avgy[index] /= ybuffer[index].size();
+			}
 
-		if (savedX != -1)
-			window->move(avgx - savedX, avgy - savedY, false);
+			float ax = (avgx[0] + avgx[1]) / 2.0;
+			float ay = (avgy[0] + avgy[1]) / 2.0;
 
-		savedX = avgx;
-		savedY = avgy;
+			if (savedX != -1)
+				window->move(ax - savedX, ay - savedY, false);
 
-	} else if (released) {
+			savedX = ax;
+			savedY = ay;
+		}
+		
+		for (int i = 0; i < 2; ++i) {
+			if (!xbuffer[i].empty()) {
+				xbuffer[i].clear();
+				ybuffer[i].clear();
+			}
+		}
+	}
+
+	if (released) {
 		if (savedX != -1) {
 			window->syncPosition();
 			savedX = savedY = -1;
@@ -165,15 +178,26 @@ bool GestureScreen::glPaintOutput (const GLScreenPaintAttrib &attrib,
 				if (point.z < 0.0) point.z = 0.0;
 				erased = false;
 
-				if (point.x >= w->geometry().x() && point.x < w->geometry().x() + w->size().width()
-				 && point.y >= w->geometry().y() && point.y < w->geometry().y() + w->size().height()) {
-
-					if ((gw->window->id() == screen->activeWindow() && point.z < 25) || point.z < 10) {
-						gw->released = false;
-						gw->xbuffer.push_back(point.x);
-						gw->ybuffer.push_back(point.y);
-						i = points.erase(i);
-						erased = true;
+				if (point.x >= w->geometry().x() && point.x < w->geometry().x() + w->size().width()) {
+					if (point.y > w->geometry().y() - (w->size().height() / 3) && point.y < w->geometry().y() + (w->size().height() / 3)) {
+						// upper edge
+						if ((gw->window->id() == screen->activeWindow() && point.z < 25) || point.z < 10) {
+							gw->released = false;
+							gw->xbuffer[0].push_back(point.x);
+							gw->ybuffer[0].push_back(point.y);
+							i = points.erase(i);
+							erased = true;
+						}
+					} else if (point.y > w->geometry().y() + w->size().height() - (w->size().height() / 3)
+					           && point.y < w->geometry().y() + w->size().height() + (w->size().height() / 3)) {
+						// lower edge
+						if ((gw->window->id() == screen->activeWindow() && point.z < 25) || point.z < 10) {
+							gw->released = false;
+							gw->xbuffer[1].push_back(point.x);
+							gw->ybuffer[1].push_back(point.y);
+							i = points.erase(i);
+							erased = true;
+						}
 					}
 				}
 
