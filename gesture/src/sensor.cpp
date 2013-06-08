@@ -145,6 +145,8 @@ bool GestureScreen::glPaintOutput (const GLScreenPaintAttrib &attrib,
 			      CompOutput		*output,
 			      unsigned int		mask)
 {
+	bool erased;
+
 	if (!points.empty()) {
 
 		foreach (CompWindow *w, screen->windows()) {
@@ -154,13 +156,14 @@ bool GestureScreen::glPaintOutput (const GLScreenPaintAttrib &attrib,
 
 			gw->released = true;
 
-			for (std::list<cv::Point3f>::iterator i = points.begin(); i != points.end(); ++i) {
+			for (std::list<cv::Point3f>::iterator i = points.begin(); i != points.end(); ) {
 				cv::Point3f point = nuiPoints->getCalibrationMgr()->getCalibratedPoint(*i);
 				if (point.x < 0.0) point.x = 0.0;
 				if (point.x >= screen->width()) point.x = screen->width() - 1.0;
 				if (point.y < 0.0) point.y = 0.0;
 				if (point.y >= screen->height()) point.y = screen->height() - 1.0;
 				if (point.z < 0.0) point.z = 0.0;
+				erased = false;
 
 				if (point.x >= w->geometry().x() && point.x < w->geometry().x() + w->size().width()
 				 && point.y >= w->geometry().y() && point.y < w->geometry().y() + w->size().height()) {
@@ -169,8 +172,13 @@ bool GestureScreen::glPaintOutput (const GLScreenPaintAttrib &attrib,
 						gw->released = false;
 						gw->xbuffer.push_back(point.x);
 						gw->ybuffer.push_back(point.y);
+						i = points.erase(i);
+						erased = true;
 					}
 				}
+
+				if (!erased)
+					++i;
 			}
 		}
 
