@@ -26,8 +26,6 @@
 *                                                                            *
 *****************************************************************************/
  
-#include "libnui.h"
-
 #include <core/core.h>
 #include <composite/composite.h>
 #include <opengl/opengl.h>
@@ -40,31 +38,18 @@ class AnaglyphScreen :
     public GLScreenInterface,
     public AnaglyphOptions
 {
-	void createNUIPoints(AnaglyphScreen *);
-	void destroyNUIPoints();
-
     public:
 	
-	class NUIListener : public nui::NUIPoints::Listener
-	{
-		AnaglyphScreen *screen;
-
-	public:
-		NUIListener(AnaglyphScreen *);
-		virtual ~NUIListener() {}
-		void readyForNextData(nui::NUIPoints *);
-		std::list<cv::Point3f> points;
-	} *myListener;
-
 	AnaglyphScreen (CompScreen *);
 	~AnaglyphScreen ();
-
+    
+    public:
+    
 	CompositeScreen *cScreen;
 	GLScreen	*gScreen;
-
+	
 	bool		mIsAnaglyph;
 	bool		mIsDamage;
-	nui::NUIPoints *nuiPoints;
 
 	void toggle ();
 
@@ -73,8 +58,7 @@ class AnaglyphScreen :
 
 	void
 	optionChanged (CompOption *, Options);
-
-	bool isNormalWindow(CompWindow *w);
+	
 	bool
 	glPaintOutput (const GLScreenPaintAttrib &,
 		       const GLMatrix		 &,
@@ -104,12 +88,6 @@ class AnaglyphWindow :
 	CompositeWindow *cWindow;
 	
 	bool mIsAnaglyph;
-
-	bool isTouched;
-	float oldx;
-	float oldy;
-	std::list<float> xbuffer;
-	std::list<float> ybuffer;
 
 	void toggle ();
 	
