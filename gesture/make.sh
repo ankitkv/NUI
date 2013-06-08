@@ -21,13 +21,25 @@
 #                                                                            #
 ##############################################################################
 
+# If no argument is given, everything will be built
+# Use sudo ./make.sh install to install the plugin
+
 if [[ $1 == "clean" ]]; then
-  (cd anaglyph && ./make.sh clean) && (cd gesture && ./make.sh clean) && (cd nui && ./make.sh clean)
-else
+  ((rm -rf build/ > /dev/null \
+  && echo -e "\033[1;32mCleaned gesture.\033[0m") || echo -e "\033[1;31mCleaning gesture failed.\033[0m")
+elif [[ $1 != "install" ]]; then
   if [[ $EUID -eq 0 ]]; then
     echo -e "\033[1;31mDo not run this as root.\033[0m"
   else
-    (cd nui && ./make.sh && sudo ./make.sh install) && (cd gesture && ./make.sh && sudo ./make.sh install) && (cd anaglyph && ./make.sh && sudo ./make.sh install)
+    mkdir -p build
+    (cd build && rm libgesture.so) 2> /dev/null
+    (cd build && cmake .. && make -j1)
+  fi
+else
+  if [[ $EUID -ne 0 ]]; then
+    echo -e "\033[1;31mPlease run this as root.\033[0m"
+  else
+    (cd build && make -j1 install)
   fi
 fi
 
