@@ -26,45 +26,6 @@
 
 COMPIZ_PLUGIN_20090315 (gesture, GesturePluginVTable)
 
-bool GestureWindow::glPaint (const GLWindowPaintAttrib &attrib,
-		     const GLMatrix            &transform,
-		     const CompRegion          &region,
-		     unsigned int              mask)
-{
-    GLWindowPaintAttrib sAttrib = attrib;
-    bool                status;
-
-	gWindow->glPaintSetEnabled (this, false);
-
-	if (!xbuffer.empty()) {
-		float avgx = 0, avgy = 0;
-		for (std::list<float>::iterator i = xbuffer.begin(); i != xbuffer.end(); ++i)
-			avgx += *i;
-		for (std::list<float>::iterator i = ybuffer.begin(); i != ybuffer.end(); ++i)
-			avgy += *i;
-		avgx /= xbuffer.size();
-		avgy /= ybuffer.size();
-		
-		if (savedX != -1)
-			window->move(avgx - savedX, avgy - savedY, false);
-
-		savedX = avgx;
-		savedY = avgy;
-		xbuffer.clear();
-		ybuffer.clear();
-
-	} else if (released) {
-		window->syncPosition();
-		savedX = savedY = -1;
-		released = false;
-	}
-
-    status = gWindow->glPaint (sAttrib, transform, region, mask);
-    gWindow->glPaintSetEnabled (this, true);
-
-    return status;
-}
-
 bool GestureScreen::registerPaintHandler(compiz::composite::PaintHandler *pHnd)
 {
     cScreen->registerPaintHandler (pHnd);
@@ -93,13 +54,15 @@ GestureWindow::GestureWindow(CompWindow *window) :
 GestureScreen::GestureScreen (CompScreen *screen) :
     PluginClassHandler<GestureScreen, CompScreen> (screen),
     cScreen (CompositeScreen::get (screen)),
+    gScreen (GLScreen::get (screen)),
     nuiPoints(NULL)
 {
     if (cScreen)
 		CompositeScreenInterface::setHandler (cScreen);
+	if (gScreen)
+		GLScreenInterface::setHandler (gScreen);
 
 	optionSetScreenToggleKeyInitiate(boost::bind(&GestureScreen::toggleGesture, this));
-    ScreenInterface::setHandler (screen);
 }
 
 GestureScreen::~GestureScreen ()

@@ -32,9 +32,9 @@
 
 class GestureScreen :
     public PluginClassHandler <GestureScreen, CompScreen>,
-    public ScreenInterface,
     public CompositeScreenInterface,
     public GestureOptions,
+    public GLScreenInterface,
     public nui::NUIPoints::Listener
 {
     public:
@@ -42,6 +42,7 @@ class GestureScreen :
 	~GestureScreen ();
 
 	CompositeScreen *cScreen;
+	GLScreen        *gScreen;
 
 	nui::NUIPoints *nuiPoints;
 	void createNUIPoints();
@@ -54,6 +55,11 @@ class GestureScreen :
 	void unregisterPaintHandler ();
 
 	bool toggleGesture();
+	bool glPaintOutput (const GLScreenPaintAttrib &,
+		       const GLMatrix		 &,
+		       const CompRegion		 &,
+		       CompOutput		 *,
+		       unsigned int);
 };
 
 class GestureWindow :

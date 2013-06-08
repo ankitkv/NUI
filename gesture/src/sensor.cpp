@@ -94,40 +94,88 @@ void GestureScreen::readyForNextData(nui::NUIPoints *nuiPoints)
 		return;
 
 	openni::VideoFrameRef frame;
+	nuiPoints->getNextData(points, frame);
+}
 
-	if (nuiPoints->getNextData(points, frame) == openni::STATUS_OK) {
+bool GestureWindow::glPaint (const GLWindowPaintAttrib &attrib,
+		     const GLMatrix            &transform,
+		     const CompRegion          &region,
+		     unsigned int              mask)
+{
+    GLWindowPaintAttrib sAttrib = attrib;
+    bool                status;
 
-		for (std::list<cv::Point3f>::iterator i = points.begin(); i != points.end(); ++i) {
-			cv::Point3f point = nuiPoints->getCalibrationMgr()->getCalibratedPoint(*i);
-			if (point.x < 0.0) point.x = 0.0;
-			if (point.x >= screen->width()) point.x = screen->width() - 1.0;
-			if (point.y < 0.0) point.y = 0.0;
-			if (point.y >= screen->height()) point.y = screen->height() - 1.0;
-			if (point.z < 0.0) point.z = 0.0;
+	gWindow->glPaintSetEnabled (this, false);
 
-			foreach (CompWindow *w, screen->windows()) {
-				GESTURE_WINDOW(w);
-				if (!gw->isNormalWindow())
-					continue;
+	if (!xbuffer.empty()) {
+		float avgx = 0, avgy = 0;
+		for (std::list<float>::iterator i = xbuffer.begin(); i != xbuffer.end(); ++i)
+			avgx += *i;
+		avgx /= xbuffer.size();
+		xbuffer.clear();
+
+		for (std::list<float>::iterator i = ybuffer.begin(); i != ybuffer.end(); ++i)
+			avgy += *i;
+		avgy /= ybuffer.size();
+		ybuffer.clear();
+
+		if (savedX != -1)
+			window->move(avgx - savedX, avgy - savedY, false);
+
+		savedX = avgx;
+		savedY = avgy;
+
+	} else if (released) {
+		if (savedX != -1) {
+			window->syncPosition();
+			savedX = savedY = -1;
+		}
+		released = false;
+	}
+
+    status = gWindow->glPaint (sAttrib, transform, region, mask);
+    gWindow->glPaintSetEnabled (this, true);
+
+    return status;
+}
+
+bool GestureScreen::glPaintOutput (const GLScreenPaintAttrib &attrib,
+			      const GLMatrix		&transform,
+			      const CompRegion		&region,
+			      CompOutput		*output,
+			      unsigned int		mask)
+{
+	if (!points.empty()) {
+
+		foreach (CompWindow *w, screen->windows()) {
+			GESTURE_WINDOW(w);
+			if (!gw->isNormalWindow())
+				continue;
+
+			gw->released = true;
+
+			for (std::list<cv::Point3f>::iterator i = points.begin(); i != points.end(); ++i) {
+				cv::Point3f point = nuiPoints->getCalibrationMgr()->getCalibratedPoint(*i);
+				if (point.x < 0.0) point.x = 0.0;
+				if (point.x >= screen->width()) point.x = screen->width() - 1.0;
+				if (point.y < 0.0) point.y = 0.0;
+				if (point.y >= screen->height()) point.y = screen->height() - 1.0;
+				if (point.z < 0.0) point.z = 0.0;
 
 				if (point.x >= w->geometry().x() && point.x < w->geometry().x() + w->size().width()
 				 && point.y >= w->geometry().y() && point.y < w->geometry().y() + w->size().height()) {
 
 					if ((gw->window->id() == screen->activeWindow() && point.z < 25) || point.z < 10) {
+						gw->released = false;
 						gw->xbuffer.push_back(point.x);
 						gw->ybuffer.push_back(point.y);
 					}
 				}
 			}
-
-			foreach (CompWindow *w, screen->windows()) {
-				GESTURE_WINDOW(w);
-				if (gw->isNormalWindow() && gw->xbuffer.empty())
-					gw->released = true;
-			}
 		}
 
 		points.clear();
 	}
-}
 
+    return gScreen->glPaintOutput (attrib, transform, region, output, mask);
+}
