@@ -11,9 +11,9 @@
 *.lai
 *.la
 *.a
+
 anaglyph/build/
 anaglyph/.AUTHORS.sed
-nui/bin/Intermediate/
-nui/bin/test
-nui/bin/viewer
+gesture/build/
+gesture/.AUTHORS.sed
 nui/bin/
