@@ -40,6 +40,7 @@ void GestureScreen::unregisterPaintHandler()
 GestureWindow::GestureWindow(CompWindow *window) :
 	PluginClassHandler<GestureWindow,CompWindow> (window),
 	savedX(-1), savedY(-1),
+	clicked(false),
 	released(false),
 	window (window),
 	gWindow (GLWindow::get (window)),

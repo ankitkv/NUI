@@ -106,6 +106,7 @@ bool GestureWindow::glPaint (const GLWindowPaintAttrib &attrib,
     bool                status;
 
 	gWindow->glPaintSetEnabled (this, false);
+	bool moving = false;
 
 	if (!xbuffer[0].empty() || !xbuffer[1].empty()) {
 		if (!xbuffer[0].empty() && !xbuffer[1].empty()) {
@@ -128,6 +129,7 @@ bool GestureWindow::glPaint (const GLWindowPaintAttrib &attrib,
 
 			savedX = ax;
 			savedY = ay;
+			moving = true;
 		}
 		
 		for (int i = 0; i < 2; ++i) {
@@ -136,6 +138,25 @@ bool GestureWindow::glPaint (const GLWindowPaintAttrib &attrib,
 				ybuffer[i].clear();
 			}
 		}
+	}
+
+	if (!moving && !clicked && !xbuffer[2].empty()) {
+		float avgx = 0, avgy = 0;
+		for (std::list<float>::iterator i = xbuffer[2].begin(); i != xbuffer[2].end(); ++i)
+			avgx += *i;
+		avgx /= xbuffer[2].size();
+		xbuffer[2].clear();
+
+		for (std::list<float>::iterator i = ybuffer[2].begin(); i != ybuffer[2].end(); ++i)
+			avgy += *i;
+		avgy /= ybuffer[2].size();
+		ybuffer[2].clear();
+
+		// TODO: click
+		clicked = true;
+	} else if (clicked) {
+		// TODO: release
+		clicked = false;
 	}
 
 	if (released) {
@@ -179,6 +200,12 @@ bool GestureScreen::glPaintOutput (const GLScreenPaintAttrib &attrib,
 				erased = false;
 
 				if (point.x >= w->geometry().x() && point.x < w->geometry().x() + w->size().width()) {
+					if (point.x >= w->geometry().x() && point.x < w->geometry().x() + w->size().width()
+						&& point.y >= w->geometry().y() && point.y < w->geometry().y() + w->size().height()) {
+							gw->xbuffer[2].push_back(point.x);
+							gw->ybuffer[2].push_back(point.y);
+					}
+
 					if (point.y > w->geometry().y() - (w->size().height() / 3) && point.y < w->geometry().y() + (w->size().height() / 3)) {
 						// upper edge
 						if ((gw->window->id() == screen->activeWindow() && point.z < 25) || point.z < 10) {

@@ -75,8 +75,9 @@ class GestureWindow :
 
 	float        savedX;
 	float        savedY;
-	std::list<float> xbuffer[2];
-	std::list<float> ybuffer[2];
+	std::list<float> xbuffer[3];
+	std::list<float> ybuffer[3];
+	bool clicked;
 
 	bool isNormalWindow();
 	bool released;
