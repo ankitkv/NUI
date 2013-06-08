@@ -2,9 +2,8 @@
 *                                                                            *
 *  3D Natural User Interface for Operating Systems                           *
 *                                                                            *
-*  3D Gesture plugin, based on Move Window plugin                            *
-*  Copyright (c) 2005 Novell, Inc.                                           *
-*  Copyright (c) 2013 Ankit Vani,                                            *
+*  3D Gesture plugin                                                         *
+*  Copyright (C) 2013 Ankit Vani,                                            *
 *                     Humayun Mulla,                                         *
 *                     Ronit Kulkarni,                                        *
 *                     Siddharth Kulkarni                                     *
@@ -31,24 +30,6 @@
 #include <opengl/opengl.h>
 
 #include "gesture_options.h"
-
-#define NUM_KEYS (sizeof (mKeys) / sizeof (mKeys[0]))
-
-extern const unsigned short KEY_MOVE_INC;
-
-extern const unsigned short SNAP_BACK;
-extern const unsigned short SNAP_OFF;
-
-struct _MoveKeys {
-    const char *name;
-    int        dx;
-    int        dy;
-} static mKeys[] = {
-    { "Left",  -1,  0 },
-    { "Right",  1,  0 },
-    { "Up",     0, -1 },
-    { "Down",   0,  1 }
-};
 
 class GestureScreen :
     public ScreenInterface,
@@ -84,14 +65,10 @@ class GestureScreen :
 
 	Region     region;
 	int        status;
-	KeyCode    key[NUM_KEYS];
 
 	CompScreen::GrabHandle grab;
 
 	Cursor moveCursor;
-
-	int	snapOffY;
-	int	snapBackY;
 
 	bool hasCompositing;
 

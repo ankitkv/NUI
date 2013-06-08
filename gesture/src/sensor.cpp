@@ -2,9 +2,8 @@
 *                                                                            *
 *  3D Natural User Interface for Operating Systems                           *
 *                                                                            *
-*  3D Gesture plugin, based on Move Window plugin                            *
-*  Copyright (c) 2005 Novell, Inc.                                           *
-*  Copyright (c) 2013 Ankit Vani,                                            *
+*  3D Gesture plugin                                                         *
+*  Copyright (C) 2013 Ankit Vani,                                            *
 *                     Humayun Mulla,                                         *
 *                     Ronit Kulkarni,                                        *
 *                     Siddharth Kulkarni                                     *

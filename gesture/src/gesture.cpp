@@ -2,9 +2,8 @@
 *                                                                            *
 *  3D Natural User Interface for Operating Systems                           *
 *                                                                            *
-*  3D Gesture plugin, based on Move Window plugin                            *
-*  Copyright (c) 2005 Novell, Inc.                                           *
-*  Copyright (c) 2013 Ankit Vani,                                            *
+*  3D Gesture plugin                                                         *
+*  Copyright (C) 2013 Ankit Vani,                                            *
 *                     Humayun Mulla,                                         *
 *                     Ronit Kulkarni,                                        *
 *                     Siddharth Kulkarni                                     *
@@ -33,11 +32,6 @@
 #include <cstring>
 
 COMPIZ_PLUGIN_20090315 (gesture, GesturePluginVTable)
-
-const unsigned short KEY_MOVE_INC = 24;
-
-const unsigned short SNAP_BACK = 20;
-const unsigned short SNAP_OFF  = 100;
 
 bool
 GestureScreen::moveInitiate(CompOption::Vector &options)
@@ -87,9 +81,6 @@ GestureScreen::moveInitiate(CompOption::Vector &options)
 
 	workArea = s->getWorkareaForOutput (w->outputDevice ());
 
-	ms->snapBackY = w->serverGeometry ().y () - workArea.y ();
-	ms->snapOffY  = y - workArea.y ();
-
 	if (!ms->grab)
 	    ms->grab = s->pushGrab (ms->moveCursor, "gesture");
 
@@ -103,8 +94,6 @@ GestureScreen::moveInitiate(CompOption::Vector &options)
 	    ms->w = w;
 
 	    w->grabNotify (x, y, 0, grabMask);
-
-		w->updateAttributes (CompStackingUpdateModeAboveFullscreen);
 	}
     }
 
@@ -252,43 +241,37 @@ GestureScreen::moveHandleMotionEvent(int xRoot, int yRoot)
 	ms->x += xRoot - lastPointerX;
 	ms->y += yRoot - lastPointerY;
 
-	if (w->type () & CompWindowTypeFullscreenMask)
+    CompRect workArea;
+    int	     min, max;
+
+    dx = ms->x;
+    dy = ms->y;
+
+    workArea = screen->getWorkareaForOutput (w->outputDevice ());
+
+	if (!ms->region)
+	    ms->region = moveGetYConstrainRegion (screen);
+
+	/* make sure that the top border extents or the top row of
+	   pixels are within what is currently our valid screen
+	   region */
+	if (ms->region)
 	{
-	    dx = dy = 0;
-	}
-	else
-	{
-	    CompRect workArea;
-	    int	     min, max;
+	    int x, y, width, height;
+	    int status;
 
-	    dx = ms->x;
-	    dy = ms->y;
+	    x	   = wX + dx - w->border ().left;
+	    y	   = wY + dy - w->border ().top;
+	    width  = wWidth + w->border ().left + w->border ().right;
+	    height = w->border ().top ? w->border ().top : 1;
 
-	    workArea = screen->getWorkareaForOutput (w->outputDevice ());
+	    status = XRectInRegion (ms->region, x, y,
+				    (unsigned int) width,
+				    (unsigned int) height);
 
-		if (!ms->region)
-		    ms->region = moveGetYConstrainRegion (screen);
-
-		/* make sure that the top border extents or the top row of
-		   pixels are within what is currently our valid screen
-		   region */
-		if (ms->region)
-		{
-		    int x, y, width, height;
-		    int status;
-
-		    x	   = wX + dx - w->border ().left;
-		    y	   = wY + dy - w->border ().top;
-		    width  = wWidth + w->border ().left + w->border ().right;
-		    height = w->border ().top ? w->border ().top : 1;
-
-		    status = XRectInRegion (ms->region, x, y,
-					    (unsigned int) width,
-					    (unsigned int) height);
-
-		    /* only constrain movement if previous position was valid */
-		    if (ms->status == RectangleIn)
-		    {
+	    /* only constrain movement if previous position was valid */
+	    if (ms->status == RectangleIn)
+	    {
 			int xStatus = status;
 
 			while (dx && xStatus != RectangleIn)
@@ -350,8 +333,7 @@ GestureScreen::moveHandleMotionEvent(int xRoot, int yRoot)
 		    dx = min - wX;
 		else if (wX + dx > max)
 		    dx = max - wX;
-	    }
-	}
+    }
 
 	if (dx || dy)
 	{
@@ -406,10 +388,6 @@ GestureScreen::GestureScreen (CompScreen *screen) :
     grab (NULL),
     hasCompositing (false)
 {
-    for (unsigned int i = 0; i < NUM_KEYS; i++)
-	key[i] = XKeysymToKeycode (screen->dpy (),
-				   XStringToKeysym (mKeys[i].name));
-
     moveCursor = XCreateFontCursor (screen->dpy (), XC_fleur);
     if (cScreen)
     {
