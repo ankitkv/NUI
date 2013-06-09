@@ -82,10 +82,21 @@ bool GestureWindow::isNormalWindow()
 
 bool GestureScreen::toggleGesture()
 {
-	if (nuiPoints)
+	if (nuiPoints) {
 		destroyNUIPoints();
-	else
+	} else {
 		createNUIPoints();
+		if (nuiPoints) {
+			foreach (CompWindow *w, screen->windows()) {
+				GESTURE_WINDOW(w);
+				if (gw->isNormalWindow()) {
+					gw->savedX = gw->savedY = -1;
+					gw->clicked = false;
+					gw->released = false;
+				}
+			}
+		}
+	}
 	return true;
 }
 
@@ -110,33 +121,44 @@ bool GestureWindow::glPaint (const GLWindowPaintAttrib &attrib,
 	bool moving = false;
 
 	if (!xbuffer[0].empty() || !xbuffer[1].empty()) {
-		if (!xbuffer[0].empty() && !xbuffer[1].empty()) {
-			float avgx[2] = {0, 0}, avgy[2] = {0, 0};
-			for (int index = 0; index < 2; ++index) {
-				for (std::list<float>::iterator i = xbuffer[index].begin(); i != xbuffer[index].end(); ++i)
-					avgx[index] += *i;
-				avgx[index] /= xbuffer[index].size();
+		if (!clicked) {
+			if (!xbuffer[0].empty() && !xbuffer[1].empty()) {
+				float avgx[2] = {0, 0}, avgy[2] = {0, 0};
+				for (int index = 0; index < 2; ++index) {
+					for (std::list<float>::iterator i = xbuffer[index].begin(); i != xbuffer[index].end(); ++i)
+						avgx[index] += *i;
+					avgx[index] /= xbuffer[index].size();
 
-				for (std::list<float>::iterator i = ybuffer[index].begin(); i != ybuffer[index].end(); ++i)
-					avgy[index] += *i;
-				avgy[index] /= ybuffer[index].size();
+					for (std::list<float>::iterator i = ybuffer[index].begin(); i != ybuffer[index].end(); ++i)
+						avgy[index] += *i;
+					avgy[index] /= ybuffer[index].size();
+				}
+
+				float ax = (avgx[0] + avgx[1]) / 2.0;
+				float ay = (avgy[0] + avgy[1]) / 2.0;
+
+				if (savedX != -1) {
+					usleep(10000);
+					window->move(ax - savedX, ay - savedY, false);
+				}
+
+				savedX = ax;
+				savedY = ay;
+				moving = true;
 			}
 
-			float ax = (avgx[0] + avgx[1]) / 2.0;
-			float ay = (avgy[0] + avgy[1]) / 2.0;
-
-			if (savedX != -1)
-				window->move(ax - savedX, ay - savedY, false);
-
-			savedX = ax;
-			savedY = ay;
-			moving = true;
-		}
-
-		for (int i = 0; i < 2; ++i) {
-			if (!xbuffer[i].empty()) {
-				xbuffer[i].clear();
-				ybuffer[i].clear();
+			for (int i = 0; i < (moving ? 3 : 2); ++i) {
+				if (!xbuffer[i].empty()) {
+					xbuffer[i].clear();
+					ybuffer[i].clear();
+				}
+			}
+		} else {
+			for (int i = 0; i < 2; ++i) {
+				if (!xbuffer[i].empty()) {
+					xbuffer[i].clear();
+					ybuffer[i].clear();
+				}
 			}
 		}
 	}
@@ -155,35 +177,28 @@ bool GestureWindow::glPaint (const GLWindowPaintAttrib &attrib,
 
 		XWarpPointer(screen->dpy(), None, RootWindow(screen->dpy(), DefaultScreen(screen->dpy())), 0, 0, 0, 0, (int)avgx, (int)avgy);
 		XFlush(screen->dpy());
-
-		memset(&event, 0x00, sizeof(event));
-
-		event.xbutton.button = 1;
-		event.xbutton.same_screen = true;
-		event.type = ButtonPress;
-
-		XQueryPointer(screen->dpy(), RootWindow(screen->dpy(), DefaultScreen(screen->dpy())), &event.xbutton.root, &event.xbutton.window, &event.xbutton.x_root, &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
-
-		event.xbutton.subwindow = event.xbutton.window;
-		while (event.xbutton.subwindow) {
-			event.xbutton.window = event.xbutton.subwindow;
-			XQueryPointer(screen->dpy(), event.xbutton.window, &event.xbutton.root, &event.xbutton.subwindow, &event.xbutton.x_root, &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
-		}
-
-		pw = PointerWindow;
-		XSendEvent(screen->dpy(), pw, true, 0xfff, &event);
-		XFlush(screen->dpy());
+		system("xdotool mousedown 1");
 
 		clicked = true;
 
 	} else if (!moving && xbuffer[2].empty() && clicked) {
-		event.type = ButtonRelease;
-		event.xbutton.state = 0x100;
 
-		XSendEvent(screen->dpy(), pw, true, 0xfff, &event);
-		XFlush(screen->dpy());
-
+		system("xdotool mouseup 1");
 		clicked = false;
+	} else if (!moving && clicked && !xbuffer[2].empty()) {
+		float avgx = 0, avgy = 0;
+		for (std::list<float>::iterator i = xbuffer[2].begin(); i != xbuffer[2].end(); ++i)
+			avgx += *i;
+		avgx /= xbuffer[2].size();
+		xbuffer[2].clear();
+
+		for (std::list<float>::iterator i = ybuffer[2].begin(); i != ybuffer[2].end(); ++i)
+			avgy += *i;
+		avgy /= ybuffer[2].size();
+		ybuffer[2].clear();
+
+		XWarpPointer(screen->dpy(), None, RootWindow(screen->dpy(), DefaultScreen(screen->dpy())), 0, 0, 0, 0, (int)avgx, (int)avgy);
+		XFlush(screen->dpy());
 	}
 
 	if (released) {
