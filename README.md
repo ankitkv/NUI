@@ -4,7 +4,7 @@ The purpose of this project is to make the operating system shell take advantage
 
 Thus the user can move and touch window controls in 3D space. The 3D display is implemented via the compiz compositor, and the input is implemented via OpenNI and OpenCV.
 
-This project was initially created as a final year project for my computer engineering bachelor's degree.
+This project was initially created as a final year project for my computer engineering bachelor's degree, with Siddharth Kulkarni, Ronit Kulkarni and Humayun Mulla.
 
 
 #### I. Hardware requirements
@@ -71,10 +71,10 @@ $ ./calib
 In the calib window, ensure that your monitor appears on the very left. The screen should touch the left edge of the window.
 Now, when you take a finger near the screen, it should be indicated with a red dot.
 
-Touch the upper left corner of the screen, press Q
-Touch the upper right corner of the screen, press W
-Touch the lower left corner of the screen, press A
-Touch the lower right corner of the screen, press S
+ * Touch the upper left corner of the screen, press Q
+ * Touch the upper right corner of the screen, press W
+ * Touch the lower left corner of the screen, press A
+ * Touch the lower right corner of the screen, press S
 
 To cancel calibration, press D.
 
