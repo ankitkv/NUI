@@ -83,6 +83,7 @@ class GestureWindow :
 	bool released;
 
 	XEvent event;
+	Window pw;
 
 	CompWindow      *window;
 	GLWindow        *gWindow;

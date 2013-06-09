@@ -24,6 +24,7 @@
 
 #include "gesture.h"
 
+#include <ctime>
 #include <pwd.h>
 
 void GestureScreen::createNUIPoints()
@@ -131,7 +132,7 @@ bool GestureWindow::glPaint (const GLWindowPaintAttrib &attrib,
 			savedY = ay;
 			moving = true;
 		}
-		
+
 		for (int i = 0; i < 2; ++i) {
 			if (!xbuffer[i].empty()) {
 				xbuffer[i].clear();
@@ -152,37 +153,34 @@ bool GestureWindow::glPaint (const GLWindowPaintAttrib &attrib,
 		avgy /= ybuffer[2].size();
 		ybuffer[2].clear();
 
+		XWarpPointer(screen->dpy(), None, RootWindow(screen->dpy(), DefaultScreen(screen->dpy())), 0, 0, 0, 0, (int)avgx, (int)avgy);
+		XFlush(screen->dpy());
+
 		memset(&event, 0x00, sizeof(event));
-	
-		event.type = ButtonPress;
+
 		event.xbutton.button = 1;
-		event.xbutton.same_screen = True;
-		event.xbutton.root = RootWindow(screen->dpy(), DefaultScreen(screen->dpy()));
-		event.xbutton.window = window->id();
-	
-		CompWindow *r = screen->findWindow(event.xbutton.root);
-		event.xbutton.x_root = r->geometry().x();
-		event.xbutton.y_root = r->geometry().x();
-		event.xbutton.x = avgx - event.xbutton.x_root;
-		event.xbutton.y = avgy - event.xbutton.y_root;
-		event.xbutton.state = Button1Mask;
+		event.xbutton.same_screen = true;
+		event.type = ButtonPress;
+
+		XQueryPointer(screen->dpy(), RootWindow(screen->dpy(), DefaultScreen(screen->dpy())), &event.xbutton.root, &event.xbutton.window, &event.xbutton.x_root, &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
+
 		event.xbutton.subwindow = event.xbutton.window;
-		
-		XSendEvent(screen->dpy(), window->id(), true, 0xfff, &event);
+		while (event.xbutton.subwindow) {
+			event.xbutton.window = event.xbutton.subwindow;
+			XQueryPointer(screen->dpy(), event.xbutton.window, &event.xbutton.root, &event.xbutton.subwindow, &event.xbutton.x_root, &event.xbutton.y_root, &event.xbutton.x, &event.xbutton.y, &event.xbutton.state);
+		}
+
+		pw = PointerWindow;
+		XSendEvent(screen->dpy(), pw, true, 0xfff, &event);
 		XFlush(screen->dpy());
 
 		clicked = true;
 
-	} else if (clicked) {
+	} else if (!moving && xbuffer[2].empty() && clicked) {
 		event.type = ButtonRelease;
-		CompWindow *r = screen->findWindow(event.xbutton.root);
-		event.xbutton.x_root = r->geometry().x();
-		event.xbutton.y_root = r->geometry().x();
-		event.xbutton.x = savedX - event.xbutton.x_root;
-		event.xbutton.y = savedY - event.xbutton.y_root;
 		event.xbutton.state = 0x100;
-	
-		XSendEvent(screen->dpy(), window->id(), true, 0xfff, &event);	
+
+		XSendEvent(screen->dpy(), pw, true, 0xfff, &event);
 		XFlush(screen->dpy());
 
 		clicked = false;
@@ -210,7 +208,7 @@ bool GestureScreen::glPaintOutput (const GLScreenPaintAttrib &attrib,
 {
 	bool erased;
 
-	if (!points.empty()) {
+	if (nuiPoints && !points.empty()) {
 
 		foreach (CompWindow *w, screen->windows()) {
 			GESTURE_WINDOW(w);
