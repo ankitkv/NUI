@@ -82,6 +82,8 @@ class GestureWindow :
 	bool isNormalWindow();
 	bool released;
 
+	XEvent event;
+
 	CompWindow      *window;
 	GLWindow        *gWindow;
 	CompositeWindow *cWindow;
