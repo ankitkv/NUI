@@ -185,20 +185,6 @@ bool GestureWindow::glPaint (const GLWindowPaintAttrib &attrib,
 
 		system("xdotool mouseup 1");
 		clicked = false;
-	} else if (!moving && clicked && !xbuffer[2].empty()) {
-		float avgx = 0, avgy = 0;
-		for (std::list<float>::iterator i = xbuffer[2].begin(); i != xbuffer[2].end(); ++i)
-			avgx += *i;
-		avgx /= xbuffer[2].size();
-		xbuffer[2].clear();
-
-		for (std::list<float>::iterator i = ybuffer[2].begin(); i != ybuffer[2].end(); ++i)
-			avgy += *i;
-		avgy /= ybuffer[2].size();
-		ybuffer[2].clear();
-
-		XWarpPointer(screen->dpy(), None, RootWindow(screen->dpy(), DefaultScreen(screen->dpy())), 0, 0, 0, 0, (int)avgx, (int)avgy);
-		XFlush(screen->dpy());
 	}
 
 	if (released) {
