@@ -58,6 +58,14 @@ $ ./make.sh
 $ sudo ./make.sh install
 ```
 
+Similarly, build the gesture plugin.
+
+```
+$ cd gesture
+$ ./make.sh
+$ sudo ./make.sh install
+```
+
 
 #### IV. Using NUI
 
