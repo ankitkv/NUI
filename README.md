@@ -4,6 +4,8 @@ The purpose of this project is to make the operating system shell take advantage
 
 Thus the user can move and touch window controls in 3D space. The 3D display is implemented via the compiz compositor, and the input is implemented via OpenNI and OpenCV.
 
+This project was initially created as a final year project for my computer engineering bachelor's degree.
+
 
 #### I. Hardware requirements
 
@@ -55,3 +57,32 @@ $ cd anaglyph
 $ ./make.sh
 $ sudo ./make.sh install
 ```
+
+
+#### IV. Using NUI
+
+Place your depth sensor to the right of your monitor, looking at the monitor perpendicularly. Run the calibration tool:
+
+```
+$ cd nui/bin
+$ ./calib
+```
+
+In the calib window, ensure that your monitor appears on the very left. The screen should touch the left edge of the window.
+Now, when you take a finger near the screen, it should be indicated with a red dot.
+
+Touch the upper left corner of the screen, press Q
+Touch the upper right corner of the screen, press W
+Touch the lower left corner of the screen, press A
+Touch the lower right corner of the screen, press S
+
+To cancel calibration, press D.
+
+Once calibrated, the mouse pointer will follow your finger when placed in front of the screen.
+Ensure accurate calibration, and press ESC to exit the calibration tool. The calibration data is saved in ~/.nuipoints.xml
+
+Load the anaglyph (Anaglyph) and gesture (3D Gestures) plugins in compiz.
+Press Shift+Alt+A to start anaglyph.
+Press Shift+Alt+G to start gesture detection. You will need your depth sensor connected for this to work.
+
+You can now see windows in 3D, hold them, move them around, touch them to click on them, all in 3D space :)
