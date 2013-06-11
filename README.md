@@ -32,6 +32,11 @@ $ git pull
 
 To compile NUI, you will need the libraries for OpenNI, compiz development, OpenCV, OpenGL. You will also need cmake to build the compiz plugin.
 
+Required environment variables:
+ - OPENNI2_INCLUDE = your OpenNI Include directory path
+ - OPENNI2_REDIST = your OpenNI Redist directory path
+ - OPENNI2_DRIVERS_PATH = your OpenNI Drivers directory path (generally $OPENNI2_REDIST/OpenNI2/Drivers)
+
 To build and install everything, use this command from the source root directory:
 
 ```
